@@ -1,0 +1,12 @@
+export(flowCut)
+import(flowCore)
+importFrom(flowDensity, deGate, plotDens, getPeaks)
+#import(foreach)
+#import(parody)
+importFrom(Cairo, CairoPNG)
+#import(doMC)
+importFrom(grDevices, dev.off)
+importFrom(graphics, abline, lines, par, points)
+importFrom(stats, density, quantile, sd)
+importFrom(e1071, moment)
+

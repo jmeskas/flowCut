@@ -1,0 +1,164 @@
+%\VignetteIndexEntry{flowCut package}
+%\VignetteKeywords{Preprocessing,statistics}
+
+\documentclass{article}
+
+\usepackage{graphicx}
+
+
+\usepackage{amsmath}
+\usepackage{cite, hyperref}
+\usepackage{Sweave}
+\usepackage{float}
+
+\usepackage[nolist]{acronym}
+\usepackage{url}
+\usepackage{verbatim}
+
+\usepackage{etoolbox}
+\makeatletter
+\preto{\@verbatim}{\topsep=5pt \partopsep=5pt }
+\makeatother
+
+\usepackage{layout}
+\oddsidemargin = 15pt
+\textwidth = 440pt
+
+\usepackage[pagestyles]{titlesec}
+\newpagestyle{main}{\setfoot{}{}{\thepage}}
+\pagestyle{main}
+\assignpagestyle{\chapter}{main}
+
+
+\title{{\it \textbf{flowCut}}: Precise and Accurate Automated Removal of Outlier Events and Flagging of Files Based on Time Versus Fluorescence Analysis}
+\author{Justin Meskas, Sherrie Wang}
+
+
+\begin{document}
+\SweaveOpts{concordance=TRUE}
+\setkeys{Gin}{width=1.0\textwidth, height=1.1\textwidth}
+
+\maketitle
+\thispagestyle{empty}
+\begin{center}
+{\tt jmeskas@bccrc.ca, swang@bccrc.ca}
+\end{center}
+
+\textnormal{\normalfont}
+
+\tableofcontents
+
+\newpage
+
+% <<echo=FALSE>>=
+% options(width=40)
+% @
+
+\section{Loading the Library}
+
+To install {\it \textbf{flowCut}} type {\it source(``http://bioconductor.org/biocLite.R'')} into R and then type \\{\it biocLite(``flowCut'')}. For more information on installation guidelines, see the Bioconductor and the CRAN websites. Once installed, to load the library, type the following into R:
+<<loadlibs, echo=TRUE, fig=FALSE, results=hide>>=
+library("flowCut")
+@
+\section{Running {\it \textbf{flowCut}}}
+\subsection{Introduction}
+
+{\it \textbf{flowCut}} automatically removes outlier events in flow cytometry data files due to abnormal flow resulting from clogs and other common technical problems. Our approach is based on identifying both regions of low density and segments (default size of 500 events) that are significantly different from the rest.
+
+Eight measures of each segment (mean, median, 5th, 20th, 80th and 95th percentile, second moment (variation) and third moment (skewness)) are calculated. The density of the summation of the 8 measures of each segment and two parameters ({\it MaxValleyHgt} and {\it MaxPercCut}) will determine which events are significantly different from the other events, and those events will be removed. We also flag files if they display any of 1) not monotonically increasing in time, 2) sudden changes in fluorescence, 3) large gradual change of fluorescence in all channels or 4) very large gradual change of fluorescence in one channel.
+
+\subsection{Simple Example}
+The dataset used here is borrowed from the {\it flowCore} package; the dataset is called GvHD. We pre-loaded the compensated and transformed data into the {\it \textbf{flowCut} library}. To load the data for all examples used in this vignette:
+\begin{small}
+<<fig=FALSE, results=hide>>=
+data(flowCutData)
+@
+\end{small}
+
+We run {\it \textbf{flowCut}} with default parameters with the exception of {\it Plot}, which is changed to ``All'', so we can see the results:
+
+\begin{figure}[H]\begin{center}
+\begin{small}
+<<label=MaxValleyHgt0p1, fig=TRUE, echo=TRUE, height=22, width=22, keep.source=FALSE>>=
+res_flowCut <- flowCut(flowCutData[[1]], FileID = 1, Plot = "All", PrintToConsole = T, MaxValleyHgt = 0.1, Segment = 500, MaxContin = 0.13)
+@
+\end{small}
+  \caption{Running {\it \textbf{flowCut}} with default values.}
+  \label{fig:one}
+\end{center}\end{figure}
+
+<<label=MaxValleyHgt0p1Data, fig=FALSE, echo=TRUE>>=
+res_flowCut$data
+@
+
+
+A list containing four elements will be returned. The first element, {\it \$frame}, is the flowFrame file returned after {\it \textbf{flowCut}} has cleaned the flowFrame. The second element, {\it \$ind}, is a vector containing indices of segments being removed. The third element, {\it \$data}, is a table containing computational information that users can access. The fourth element, {\it \$worstChan}, is the index of the channel with the most drift over time before cleaning.
+
+You can access the plots in the {\it \textbf{flowCut}} folder under your current working directory.
+
+The first five sub-plots in Figure \ref{fig:one} are the channels that undergo fluorescence analysis from {\it \textbf{flowCut}}. The numbers on top of each of the five plots indicate mean drift before cutting, mean drift after cutting and the parameter {\it MaxContin} (in the bracket). The mean drift is calcuated as the difference of the maximum mean and the minimum mean divided by the 2-98 percentile of the data. This would catch any step changes or fluctuations in the file. If the mean drift becomes significant, the file is flagged. The parameters {\it MeanOfMeans} and {\it MaxOfMeans} control the strickness of these flags, and we recommend not to change these numbers unless a greater or weaker strickness is desired. The value in the bracket corresponds to the parameter {\it MaxContin}, which indicates the changes of the means between adjacent segments in each channel. This parameter would catch abrupt mean changes such as spikes. The default is 0.15 and we recommend not to change this value.
+
+The top and bottom horizontal dark brown lines correspond to the 98th percentile and the 2nd percentile of the full data after cleaning, respectively. The 98th and 2nd percentile lines for the data before cleaning is coloured in light brown, but is most likely not seen. Most of the time these two sets of lines are indistinguishable on the plot because there is no significant change in percentiles before and after cleaning.
+
+Connecting the mean of each segment results in the brown line in the middle. Sometimes you can see the brown line have some pink parts. This is the mean of each segment before cleaning. With the difference between pink and brown, the user can see why which section is removed. Of course this only shows the mean measure of the 8 measures used to judge if a segment is removed or not. The segments that are removed will be coloured black.
+
+The 8 statistical measures {\it \textbf{flowCut}} calculates from each segment are summed up to obtain a single statistical number for each segment. If we plot the density of the summed measures for every segment, we obtain the last plot in Figure \ref{fig:one}. The {\it deGate} function in {\it flowDensity} gives us the cutoff line on the density curve. Any event with a statistical number larger than the cutoff line will be removed.
+
+\subsection{Changing the Parameter MaxValleyHgt}
+This example will show what the parameter {\it MaxValleyHgt} does and how changing the value will affect the amount of event deletions.
+
+The {\it MaxValleyHgt} parameter is closely related to the density of summed measures. {\it MaxValleyHgt} defines the limit of the height of the intersection point where the cutoff line meets the density plot, specifically, it is the percentage of the height of the maximum peak. Setting the number higher can potentially cut off more events, whereas lowering the number will potentially reduce it.
+
+For example, if we set {\it MaxValleyHgt} to 0.02:
+
+\begin{figure}\begin{center}
+  \begin{small}
+<<label=MaxValleyHgt0p02, fig=TRUE, echo=TRUE, height=22, width=22>>=
+res_flowCut <- flowCut(flowCutData[[1]], FileID=2, Plot ="All", PrintToConsole = T, MaxValleyHgt = 0.02)
+@
+  \end{small}
+  \caption {Running {\it \textbf{flowCut}} with {\it MaxValleyHgt} changed to 0.02}
+  \label{fig:two}
+\end{center}\end{figure}
+
+The result shows fewer removal regions, Figure \ref{fig:two}:
+
+% \begin{figure}\begin{center}
+%   % \includegraphics[width = 5in, height = 8in,trim = 0 0.8in 0 3.2in]{2_500_Passed_MaxValleyHgt_TTTT.png}
+%   \includegraphics{flowCut-MaxValleyHgt0p02}
+%   \caption {Running {\it \textbf{flowCut}} with {\it MaxValleyHgt} changed to 0.02}
+%   \label{fig:two}
+% \end{center}\end{figure}
+
+\subsection{Changing the Parameter MaxPercCut}
+Sometimes we get files that show distinctive populations. This would be reflected on the density of summed measures. For example, the following {\it \textbf{flowCut}} result is shown in Figure \ref{fig:three}:
+
+\begin{figure}\begin{center}
+\begin{small}
+<<label=MaxPercCut0p2, fig=TRUE, echo=TRUE, height=22, width=22>>=
+res_flowCut <- flowCut(flowCutData[[2]], FileID=3, Plot ="All", PrintToConsole = T, MaxPercCut = 0.2)
+@
+\end{small}
+
+  % \includegraphics{flowCut-MaxPercCut0p2}
+  \caption{Running {\it \textbf{flowCut}} with default values.}
+  \label{fig:three}
+\end{center}\end{figure}
+
+{\it MaxPercCut} defines the percentage of the events users would potentially want to remove. The default value is 0.2, which means {\it \textbf{flowCut}} can remove a maximum of 20 percent of the events. If you set {\it MaxPercCut} to 0.3 in this example, the result is \ref{fig:four}:
+
+\begin{figure}\begin{center}
+\begin{small}
+<<label=MaxPercCut0p3, fig=TRUE, echo=TRUE, height=22, width=22>>=
+res_flowCut <- flowCut(flowCutData[[2]], FileID=4, Plot ="All", PrintToConsole = T, MaxPercCut = 0.3)
+@
+\end{small}
+
+ % \includegraphics{flowCut-MaxPercCut0p3}
+ \caption {Running {\it \textbf{flowCut}} with {\it MaxPercCut} changed to 0.3.}
+ \label{fig:four}
+\end{center}\end{figure}
+
+For files containing a large amount of bad events, we recommend changing this parameter to 0.5.
+
+\end{document}

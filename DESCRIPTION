@@ -1,0 +1,17 @@
+Package: flowCut
+Type: Package
+Title: Removing Segments of Statistically Different Events
+Version: 0.99.0
+Date: 2017-10-25
+Author: Justin Meskas, Sherrie Wang
+Maintainer: Justin Meskas <jmeskas@bccrc.ca>
+Depends: R (>= 3.4)
+Imports: Cairo, doMC, e1071, flowCore, flowDensity, foreach, parody
+Description: Removing segments that show statistical differences from other segments.
+Suggests: RUnit, BiocGenerics
+biocViews: FlowCytometry
+License: file LICENSE
+LazyLoad: yes
+RoxygenNote: 6.0.1
+NeedsCompilation: no
+Packaged: 2017-10-05 17:01:28 UTC; swang
