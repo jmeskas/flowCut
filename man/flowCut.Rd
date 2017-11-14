@@ -46,7 +46,7 @@ flowCut (f, Segment = 500, Channels = NULL, Directory=NULL, FileID=NULL, Plot="N
         A numeric value that defines the critical maximum value of percentage differences between the difference of the maximum and minimum mean and the difference of the 98th and 2nd percentile from all segments together. If the value exceeds the defaulted critical value of 0.15, which indicates a very large gradual change of fluorescence in one channel, then the file is flagged. Formula: max( (max(z)-min(z)) / (98th percentile - 2nd percentile) ) >= MaxOfMeans, where z is all the means of the segments.
     }
     \item{MaxValleyHgt}{
-        A numeric value that defines the vertical limit on the density of 8 measures of each segment. Increasing MaxValleyHgt will potentially increase the amount of events being cut. The default is 0.1.
+        A numeric value that defines the maximum height of the intersection point of the cutoff line and the density of summed measure plot. Increasing MaxValleyHgt will potentially increase the amount of events being cut. The default is 0.1.
     }
     \item{MaxPercCut}{
         A numeric value between 0 to 1 that sets the percentage of a cell population that a user is willing to potentially cut. If the file contains a lot of bad events, we suggest increasing this number to potentially cut off more deviates; usually 0.5 is sufficient in this case. The default is 0.2.
@@ -98,17 +98,21 @@ res_flowCut <- flowCut(flowCutData[[1]])
 # See plot in working directory/flowCut
 
 # Here is an example with decreasing the MaxValleyHgt parameter.
-res_flowCut <- flowCut(flowCutData[[1]], MaxValleyHgt = 0.02, Verbose = TRUE)
+res_flowCut <- flowCut(flowCutData[[2]], MaxValleyHgt = 0.01, Verbose = TRUE)
 res_flowCut$data
 
-# Here is an example with raising the MaxPercCut parameter.
-res_flowCut <- flowCut(flowCutData[[2]], MaxPercCut = 0.5, Verbose = TRUE)
+# Here is an example with decreasing the MaxPercCut parameter.
+res_flowCut <- flowCut(flowCutData[[3]], MaxPercCut = 0.05, Verbose = TRUE)
+res_flowCut$data
+
+# Here is an example using AllowFlaggedRerun and UseOnlyWorstChannels
+res_flowCut <- flowCut(flowCutData[[4]], AllowFlaggedRerun = TRUE, UseOnlyWorstChannels = TRUE)
 res_flowCut$data
 
 # Alternative plotting option
 library(flowDensity)
-plotDens(flowCutData[[2]], c(8,3))
-points(flowCutData[[2]]@exprs[res_flowCut$ind ,c(8,3)], pch=".")
+plotDens(flowCutData[[1]], c(8,3))
+points(flowCutData[[1]]@exprs[res_flowCut$ind ,c(8,3)], pch=".")
 
 }
 

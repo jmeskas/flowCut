@@ -68,19 +68,19 @@ library("flowCut")
 Eight measures of each segment (mean, median, 5th, 20th, 80th and 95th percentile, second moment (variation) and third moment (skewness)) are calculated. The density of the summation of the 8 measures of each segment and two parameters ({\it MaxValleyHgt} and {\it MaxPercCut}) will determine which events are significantly different from the other events, and those events will be removed. We also flag files if they display any of 1) not monotonically increasing in time, 2) sudden changes in fluorescence, 3) large gradual change of fluorescence in all channels or 4) very large gradual change of fluorescence in one channel.
 
 \subsection{Simple Example}
-The dataset used here is borrowed from the {\it flowCore} package; the dataset is called GvHD. We pre-loaded the compensated and transformed data into the {\it \textbf{flowCut} library}. To load the data for all examples used in this vignette:
+The dataset used here is borrowed from the {\it flowCore} package; the dataset is called GvHD. We also include a data set from flow repository. We pre-loaded the compensated and transformed data into the {\it \textbf{flowCut} library}. To load the data for all examples used in this vignette:
 \begin{small}
 <<fig=FALSE, results=hide>>=
 data(flowCutData)
 @
 \end{small}
 
-We run {\it \textbf{flowCut}} with default parameters with the exception of {\it Plot}, which is changed to ``All'', so we can see the results:
+We run {\it \textbf{flowCut}} with default parameters with the exception of {\it PrintToConsole}, which is changed to ``TRUE'', so we can see the results:
 
 \begin{figure}[H]\begin{center}
 \begin{small}
 <<label=MaxValleyHgt0p1, fig=TRUE, echo=TRUE, height=22, width=22, keep.source=FALSE>>=
-res_flowCut <- flowCut(flowCutData[[1]], FileID = 1, Plot = "All", PrintToConsole = T, MaxValleyHgt = 0.1, Segment = 500, MaxContin = 0.13)
+res_flowCut <- flowCut(flowCutData[[1]], FileID = 1, Plot = "All", PrintToConsole = T, MaxValleyHgt = 0.1, Segment = 500, MaxContin = 0.1)
 @
 \end{small}
   \caption{Running {\it \textbf{flowCut}} with default values.}
@@ -94,13 +94,13 @@ res_flowCut$data
 
 A list containing four elements will be returned. The first element, {\it \$frame}, is the flowFrame file returned after {\it \textbf{flowCut}} has cleaned the flowFrame. The second element, {\it \$ind}, is a vector containing indices of segments being removed. The third element, {\it \$data}, is a table containing computational information that users can access. The fourth element, {\it \$worstChan}, is the index of the channel with the most drift over time before cleaning.
 
-You can access the plots in the {\it \textbf{flowCut}} folder under your current working directory.
+By changing the {\it Plot} parameter to ``All'', You can access the plots in the {\it \textbf{flowCut}} folder under your current working directory.
 
-The first five sub-plots in Figure \ref{fig:one} are the channels that undergo fluorescence analysis from {\it \textbf{flowCut}}. The numbers on top of each of the five plots indicate mean drift before cutting, mean drift after cutting and the parameter {\it MaxContin} (in the bracket). The mean drift is calcuated as the difference of the maximum mean and the minimum mean divided by the 2-98 percentile of the data. This would catch any step changes or fluctuations in the file. If the mean drift becomes significant, the file is flagged. The parameters {\it MeanOfMeans} and {\it MaxOfMeans} control the strickness of these flags, and we recommend not to change these numbers unless a greater or weaker strickness is desired. The value in the bracket corresponds to the parameter {\it MaxContin}, which indicates the changes of the means between adjacent segments in each channel. This parameter would catch abrupt mean changes such as spikes. The default is 0.15 and we recommend not to change this value.
+The first five sub-plots in Figure \ref{fig:one} are the channels that undergo fluorescence analysis from {\it \textbf{flowCut}}. The numbers on top of each of the five plots indicate mean drift before cutting, mean drift after cutting and the parameter {\it MaxContin} (in the bracket). The mean drift is calcuated as the difference of the maximum mean and the minimum mean divided by the 2-98 percentile of the data. This would catch any step changes or fluctuations in the file. If the mean drift becomes significant, the file is flagged. The parameters {\it MeanOfMeans} and {\it MaxOfMeans} control the strickness of these flags, and we recommend not to change these numbers unless a greater or weaker strickness is desired. The value in the bracket corresponds to the parameter {\it MaxContin}, which indicates the changes of the means between adjacent segments in each channel. This parameter would catch abrupt mean changes such as spikes. The default is 0.1 and we recommend not to change this value.
 
 The top and bottom horizontal dark brown lines correspond to the 98th percentile and the 2nd percentile of the full data after cleaning, respectively. The 98th and 2nd percentile lines for the data before cleaning is coloured in light brown, but is most likely not seen. Most of the time these two sets of lines are indistinguishable on the plot because there is no significant change in percentiles before and after cleaning.
 
-Connecting the mean of each segment results in the brown line in the middle. Sometimes you can see the brown line have some pink parts. This is the mean of each segment before cleaning. With the difference between pink and brown, the user can see why which section is removed. Of course this only shows the mean measure of the 8 measures used to judge if a segment is removed or not. The segments that are removed will be coloured black.
+Connecting the mean of each segment results in the brown line in the middle. Sometimes you can see the brown line have some pink parts. This is the mean of each segment before cleaning. With the difference between pink and brown, the user can see why and which section is removed. Of course this only shows the mean measure of the 8 measures used to judge if a segment is removed or not. The segments that are removed will be coloured black.
 
 The 8 statistical measures {\it \textbf{flowCut}} calculates from each segment are summed up to obtain a single statistical number for each segment. If we plot the density of the summed measures for every segment, we obtain the last plot in Figure \ref{fig:one}. The {\it deGate} function in {\it flowDensity} gives us the cutoff line on the density curve. Any event with a statistical number larger than the cutoff line will be removed.
 
@@ -109,19 +109,29 @@ This example will show what the parameter {\it MaxValleyHgt} does and how changi
 
 The {\it MaxValleyHgt} parameter is closely related to the density of summed measures. {\it MaxValleyHgt} defines the limit of the height of the intersection point where the cutoff line meets the density plot, specifically, it is the percentage of the height of the maximum peak. Setting the number higher can potentially cut off more events, whereas lowering the number will potentially reduce it.
 
-For example, if we set {\it MaxValleyHgt} to 0.02:
+For example, for a different data set, if we set {\it MaxValleyHgt} to 0.01:
 
 \begin{figure}\begin{center}
   \begin{small}
 <<label=MaxValleyHgt0p02, fig=TRUE, echo=TRUE, height=22, width=22>>=
-res_flowCut <- flowCut(flowCutData[[1]], FileID=2, Plot ="All", PrintToConsole = T, MaxValleyHgt = 0.02)
+res_flowCut <- flowCut(flowCutData[[2]], FileID=2, Plot ="All", PrintToConsole = TRUE, MaxValleyHgt = 0.01)
 @
   \end{small}
   \caption {Running {\it \textbf{flowCut}} with {\it MaxValleyHgt} changed to 0.02}
   \label{fig:two}
 \end{center}\end{figure}
 
-The result shows fewer removal regions, Figure \ref{fig:two}:
+The result shows fewer removal regions, but the file is also flagged because the statistically different regions are not completely removed, shown in Figure \ref{fig:two}. If we change the {\it MaxValley Hgt} back to its default value 0.1, we would get Figure \ref{fig:three} and the file is passed and cleaned properly:
+
+\begin{figure}\begin{center}
+  \begin{small}
+<<label=MaxValleyHgt0p03, fig=TRUE, echo=TRUE, height=22, width=22>>=
+res_flowCut <- flowCut(flowCutData[[2]], FileID=3, Plot ="All", PrintToConsole = TRUE, MaxValleyHgt = 0.1)
+@
+  \end{small}
+  \caption {Running {\it \textbf{flowCut}} with default {\it MaxValleyHgt}}
+  \label{fig:three}
+\end{center}\end{figure}
 
 % \begin{figure}\begin{center}
 %   % \includegraphics[width = 5in, height = 8in,trim = 0 0.8in 0 3.2in]{2_500_Passed_MaxValleyHgt_TTTT.png}
@@ -131,34 +141,101 @@ The result shows fewer removal regions, Figure \ref{fig:two}:
 % \end{center}\end{figure}
 
 \subsection{Changing the Parameter MaxPercCut}
-Sometimes we get files that show distinctive populations. This would be reflected on the density of summed measures. For example, the following {\it \textbf{flowCut}} result is shown in Figure \ref{fig:three}:
+Sometimes we get files that show distinctive populations. This would be reflected on the density of summed measures. For example, the following {\it \textbf{flowCut}} result is shown in Figure \ref{fig:four}:
 
 \begin{figure}\begin{center}
 \begin{small}
 <<label=MaxPercCut0p2, fig=TRUE, echo=TRUE, height=22, width=22>>=
-res_flowCut <- flowCut(flowCutData[[2]], FileID=3, Plot ="All", PrintToConsole = T, MaxPercCut = 0.2)
+res_flowCut <- flowCut(flowCutData[[3]], FileID=4, Plot ="All", PrintToConsole = TRUE, MaxPercCut = 0.2)
 @
 \end{small}
 
   % \includegraphics{flowCut-MaxPercCut0p2}
   \caption{Running {\it \textbf{flowCut}} with default values.}
-  \label{fig:three}
+  \label{fig:four}
 \end{center}\end{figure}
 
-{\it MaxPercCut} defines the percentage of the events users would potentially want to remove. The default value is 0.2, which means {\it \textbf{flowCut}} can remove a maximum of 20 percent of the events. If you set {\it MaxPercCut} to 0.3 in this example, the result is \ref{fig:four}:
+{\it MaxPercCut} defines the percentage of the events users would want to remove. The default value is 0.2, which means {\it \textbf{flowCut}} can remove 20 percent of the total events. However, {\it \textbf{flowCut}} can potentially remove more than this amount depending the nature of the file. The example file contains a large amount of mean drift events. As such, the algorithm allows removal of all bad events after meeting the threshold limit. To illustrate how this works, we can compare the results of setting density gate line at various points. If we set {\it MaxPercCut} to 0.05 in this example, the threshold is too small to allow any removal of events. The result is Figure \ref{fig:five}:
 
 \begin{figure}\begin{center}
 \begin{small}
 <<label=MaxPercCut0p3, fig=TRUE, echo=TRUE, height=22, width=22>>=
-res_flowCut <- flowCut(flowCutData[[2]], FileID=4, Plot ="All", PrintToConsole = T, MaxPercCut = 0.3)
+res_flowCut <- flowCut(flowCutData[[3]], FileID=5, Plot ="All", PrintToConsole = TRUE, MaxPercCut = 0.05)
 @
 \end{small}
 
  % \includegraphics{flowCut-MaxPercCut0p3}
- \caption {Running {\it \textbf{flowCut}} with {\it MaxPercCut} changed to 0.3.}
- \label{fig:four}
+ \caption {Running {\it \textbf{flowCut}} with {\it MaxPercCut} changed to 0.05.}
+ \label{fig:five}
 \end{center}\end{figure}
 
-For files containing a large amount of bad events, we recommend changing this parameter to 0.5.
+If we force the density gate line at 44, that is, events that have measurements greater than 44 will be removed, Figure \ref{fig:six}.
+\begin{figure}\begin{center}
+\begin{small}
+<<label=MaxPercCut0p4, fig=TRUE, echo=TRUE, height=22, width=22>>=
+res_flowCut <- flowCut(flowCutData[[3]], FileID=6, Plot ="All", PrintToConsole = TRUE, GateLineForce=44)
+@
+\end{small}
+
+ % \includegraphics{flowCut-MaxPercCut0p3}
+ \caption {Running {\it \textbf{flowCut}} with {\it GateLineForce} changed to 44.}
+ \label{fig:six}
+\end{center}\end{figure}
+
+Comparing with Figure \ref{fig:four}, we can see that two different gate line position resulting in the same amount of removal which is more than than 20 percent. In the presence of large amount bad events, especially in the case of large amount of mean drift as illustrated in the example, the limit of this threshold is not strickly obeyed in order to properly clean files. In cases where 20 percent is not sufficient, that is, files being flagged after first attempted removal, we recommend changing this parameter to 0.5.
+
+\subsection{Parameter AllowFlaggedRerun and UseOnlyWorstChannels}
+
+Sometimes abnormal behaviours are only present in a few channels. The outlier events in these channels can be averaged out when taking into consideration of measurements in all channels. As a result, outliers in these channels are not properly removed. In this case, we can use parameter UseOnlyWorstChannels to catch these events in specific channels.
+Some files contain groups of outlier events, where one group of outliers is significantly different than the others. The first round of {\it \textbf{flowCut}} will remove the most significantly different outlier groups while other outlier groups are masked out by the worst ones. This issue can be addressed by using parameter AllowFlaggedRerun in case the first time cleaning leaves any residue outliers that need to be dealt with. For example, Figure \ref{fig:seven} shows results of {\it \textbf {flowCut}} with default values. 
+
+\begin{figure}\begin{center}
+\begin{small}
+<<label=AllowFlaggedRerunUseONlyWorstCHannels0p3, fig=TRUE, echo=TRUE, height=22, width=22>>=
+res_flowCut <- flowCut(flowCutData[[4]], FileID=7, Plot ="All", PrintToConsole = TRUE)
+@
+\end{small}
+ % \includegraphics{flowCut-MaxPercCut0p3}
+ \caption {Running {\it \textbf{flowCut}} with default values on one data example}
+ \label{fig:seven}
+\end{center}\end{figure}
+
+The most deviant population of cells have been removed. However, the file is still flagged because one of the channels shows a mean drift that's more than a predefined value. It seems a good idea to run {\it \textbf{flowCut}} again on this file to remove the mean drift events. One thing to be noted here is that the mean drift only occurs in one channel. To properly catch those events and to counter the averaging effect, we need to set UseOnlyWorstChannels parameter to ``TRUE''. The result of the second time cleaning and using only worst channels is shown in Figure \ref{fig:eight}.
+
+
+\begin{figure}\begin{center}
+\begin{small}
+<<label=AllowFlaggedRerunUseONlyWorstCHannels0p4, fig=FALSE, echo=TRUE, height=22, width=22>>=
+res_flowCut <- flowCut(flowCutData[[4]], FileID=8, AllowFlaggedRerun = TRUE, UseOnlyWorstChannels = TRUE, 
+                          PrintToConsole = TRUE)
+@
+\end{small}
+\includegraphics{Image3_500_Passed_TTTT_RemPeaks_MaxPercCut_rerun.png}
+\caption{Running {\it \textbf{flowCut}} Second Time Using Only Worst Channels}
+\label{fig:eight}
+\end{center}\end{figure}
+
+%\begin{figure}\begin{center}
+% \includegraphics{Image3_500_Passed_TTTT_RemPeaks_MaxPercCut_rerun.png}
+% \caption{Running {\it \textbf{flowCut}} Second Time Using Only Worst Channels}
+% \label{fig:eight}
+%\end{center}\end{figure}
+
+\subsection{Segment Size}
+Segment size can significantly impact the result of {\it \textbf{flowCut}} removal. The algorithm groups 500 cell events together in a segment and compare the measurements of the segment against all other segments. Depending on the size of the file, there is an optimal cell events to be grouped together for the best performance of outlier detection. Although not entirely arbitrary, users should ensure there are at least 100 segments in total (total cell events divided by Segment) for analysis for small files. For large files, users should increase the {\it segment} parameter otherwise it could result in a large fluctuation in the means and inaccurate detection of outlier. For example, we analyzed a file of a size 65MB with {\it Segment} parameter equal to 500, that is, we group 500 cell events together. The result \ref{fig:nine} shows large fluctuations in means and random segment deletions without catching the mean drift. However, as we increased the {\it Segment} to 5000, the algorithm can correctly detect and remove the part of the events that are deviant.The result is in Figure \ref{fig:ten}.
+
+\begin{figure}\begin{center}
+ \includegraphics{Image1_500_Flagged_TFFF_AllCutMin.png}
+ \caption{Running {\it \textbf{flowCut}} with Default Values Segment 500}
+ \label{fig:nine}
+\end{center}\end{figure}
+
+
+\begin{figure}\begin{center}
+ \includegraphics{Image2_5000_Passed_TTTT_AllCutMin.png}
+ \caption{Running {\it \textbf{flowCut}} with Segment 5000}
+ \label{fig:ten}
+\end{center}\end{figure}
+
 
 \end{document}
