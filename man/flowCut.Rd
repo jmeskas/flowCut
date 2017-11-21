@@ -11,7 +11,7 @@
 
 \usage{
 
-flowCut (f, Segment = 500, Channels = NULL, Directory=NULL, FileID=NULL, Plot="None",
+flowCut (f, Segment=500, Channels=NULL, Directory=NULL, FileID=NULL, Plot="None",
          MaxContin=0.1, MeanOfMeans=0.13, MaxOfMeans=0.15, MaxValleyHgt=0.1,
          MaxPercCut=0.2, LowDensityRemoval=0.1, GateLineForce=NULL,
          UseOnlyWorstChannels=FALSE, AmountMeanRangeKeep=1, AmountMeanSDKeep=2,
@@ -49,16 +49,16 @@ flowCut (f, Segment = 500, Channels = NULL, Directory=NULL, FileID=NULL, Plot="N
         A numeric value that defines the maximum height of the intersection point of the cutoff line and the density of summed measure plot. Increasing MaxValleyHgt will potentially increase the amount of events being cut. The default is 0.1.
     }
     \item{MaxPercCut}{
-        A numeric value between 0 to 1 that sets the percentage of a cell population that a user is willing to potentially cut. If the file contains a lot of bad events, we suggest increasing this number to potentially cut off more deviates; usually 0.5 is sufficient in this case. The default is 0.2.
+        A numeric value between 0 to 1 that sets the percentage of events that a user is willing to potentially cut. If the file contains a lot of bad events, we suggest increasing this number to potentially cut off more deviates; usually 0.5 is sufficient in this case. The default is 0.2.
     }
     \item{LowDensityRemoval}{
         A numerical value between 0 and 1. Any events having a density of less than LowDensityRemoval are removed. The default is 0.1.
     }
     \item{GateLineForce}{
-        A numeric value that forces the line in the density distribution plot to a value. This will be useful if the user runs a file once and wants to see what the cleaning process would look like if a little more or less was removed. The default is NULL.
+        A numeric value that forces the line in the density distribution plot to a particular value. This will be useful if the user runs a file once and wants to see what the cleaning process would look like if a little more or less was removed. The default is NULL.
     }
     \item{UseOnlyWorstChannels}{
-        A logical value that allows for an automated detection of the worst channels. This channels will be the only ones used for cleaning. Focusing on the worst channels can often make the results more consistent with intuition. The default is FALSE.
+        A logical value that allows for an automated detection of the worst channels. These channels will be the only ones used for cleaning. Focusing on the worst channels can often make the results more consistent with intuition. The default is FALSE.
     }
     \item{AmountMeanRangeKeep}{
         A non negative integer value (including 0) that defines the number of channels with a large range of means that would be included if UseOnlyWorstChannels is set to TRUE. The default is 1.
@@ -67,7 +67,7 @@ flowCut (f, Segment = 500, Channels = NULL, Directory=NULL, FileID=NULL, Plot="N
         A non negative integer value (including 0) that defines the number of channels with a large standard deviation of means that would be included if UseOnlyWorstChannels is set to TRUE. The default is 2.
     }
     \item{PrintToConsole}{
-        A logical value that dictates if the figure is printed to console or in the current directory. If no figure is desired, please see the Plot argument. The default is FALSE.
+        A logical value that dictates if the figure is printed to the console or in the current directory. If no figure is desired, please see the Plot argument. The default is FALSE.
     }
     \item{AllowFlaggedRerun}{
         A logical value that dictates if flowCut will run a second time. However, this only occurs if the file was flagged on the first run. The default is FALSE.
@@ -82,7 +82,7 @@ flowCut (f, Segment = 500, Channels = NULL, Directory=NULL, FileID=NULL, Plot="N
 }
 
 \value{
-        A list containing four elements. The first element, \$frame, is the flowFrame file returned after flowCut has cleaned the flowFrame. The second element, \$ind, is a vector containing indices of segments being removed. The third element, \$data, is a table containing computational information that users can access. Information includes "Is it monotonically increasing in time", "Largest continuous jump", "Continuous - Pass", "Mean of percentage of range of means divided by range of data", "Mean of \% - Pass", "Max of \% of range of means divided by range of data", "Max of \% - Pass", "Has a low density section been removed", "\% of low density removed", "How many Segments have been removed", "\% of events removed from Segments removed", "Worst Channel", "\% of events removed", "FileID", and "Has the file passed". The fourth element, \$worstChan, is the index of the channel with the most drift over time before cleaning.
+        A list containing four elements. The first element, $frame, is the flowFrame file returned after flowCut has cleaned the flowFrame. The second element, $ind, is a vector containing indices of events being removed. The third element, $data, is a table containing computational information that users can access. Information includes: "Is it monotonically increasing in time", "Largest continuous jump", "Continuous - Pass", "Mean of percentage of range of means divided by range of data", "Mean of \% - Pass", "Max of \% of range of means divided by range of data", "Max of \% - Pass", "Has a low density section been removed", "\% of low density removed", "How many Segments have been removed", "\% of events removed from Segments removed", "Worst Channel", "\% of events removed", "FileID", and "Has the file passed". The fourth element, $worstChan, is the index of the channel with the most drift over time before cleaning.
 }
 
 \author{
@@ -94,11 +94,11 @@ flowCut (f, Segment = 500, Channels = NULL, Directory=NULL, FileID=NULL, Plot="N
 
 \examples{
 data(flowCutData)
-res_flowCut <- flowCut(flowCutData[[1]])
+res_flowCut <- flowCut(flowCutData[[1]], Plot="All")
 # See plot in working directory/flowCut
 
 # Here is an example with decreasing the MaxValleyHgt parameter.
-res_flowCut <- flowCut(flowCutData[[2]], MaxValleyHgt = 0.01, Verbose = TRUE)
+res_flowCut <- flowCut(flowCutData[[2]], MaxValleyHgt = 0.01, Verbose = TRUE, Plot="All")
 res_flowCut$data
 
 # Here is an example with decreasing the MaxPercCut parameter.
@@ -106,14 +106,18 @@ res_flowCut <- flowCut(flowCutData[[3]], MaxPercCut = 0.05, Verbose = TRUE)
 res_flowCut$data
 
 # Here is an example using AllowFlaggedRerun and UseOnlyWorstChannels
-res_flowCut <- flowCut(flowCutData[[4]], AllowFlaggedRerun = TRUE, UseOnlyWorstChannels = TRUE)
+res_flowCut <- flowCut(flowCutData[[4]], AllowFlaggedRerun = TRUE,
+                       UseOnlyWorstChannels = TRUE, Plot="All")
 res_flowCut$data
 
-# Alternative plotting option
+# Alternative plotting option 1
+res_flowCut <- flowCut(flowCutData[[1]])
 library(flowDensity)
-plotDens(flowCutData[[1]], c(8,3))
-points(flowCutData[[1]]@exprs[res_flowCut$ind ,c(8,3)], pch=".")
+plotDens(flowCutData[[1]], c("Time","FL1-H"))
+points(flowCutData[[1]]@exprs[res_flowCut$ind, c("Time","FL1-H")], pch=".")
 
+# Alternative plotting option 2
+res_flowCut <- flowCut(flowCutData[[1]], Plot="All", PrintToConsole=TRUE)
 }
 
 \keyword{FlowCytData}

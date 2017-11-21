@@ -326,7 +326,7 @@ flowCut <- function(f, Segment=500, Channels=NULL, Directory=NULL, FileID=NULL, 
         if (Verbose == T){ cat("Running flowCut a second time.\n")}
         res_flowCut <- flowCut(f=f, Segment=Segment, Channels=Channels, Directory=Directory, FileID=FileID, Plot=Plot,
                                     MaxContin=MaxContin, MeanOfMeans=MeanOfMeans, MaxOfMeans=MaxOfMeans, MaxValleyHgt=MaxValleyHgt,
-                                    MaxPercCut=MaxPercCut, LowDensityRemoval=LowDensityRemoval, GateLineForce=GateLineForce,
+                                    MaxPercCut=MaxPercCut, LowDensityRemoval=0, GateLineForce=GateLineForce,
                                     UseOnlyWorstChannels=UseOnlyWorstChannels, AmountMeanSDKeep=AmountMeanSDKeep,
                                     AmountMeanRangeKeep=AmountMeanRangeKeep, PrintToConsole=PrintToConsole,
                                     AllowFlaggedRerun=F, Verbose=Verbose)
@@ -368,9 +368,19 @@ flowCut <- function(f, Segment=500, Channels=NULL, Directory=NULL, FileID=NULL, 
 # The sections that have a density of less than LowDensityRemoval (defaulted at 10%) of the maximum density are removed
 # An additional 2.5% of the range of these low density regions on either side is also removed because it is very common to have a burst of events before or after these low density sections
 # Because the density functions indices do not match with the flowFrames indices, density function indices need to convert to flowFrame indices.
-removeLowDensSections <- function(f, LowDensityRemoval, Verbose=F){
+removeLowDensSections <- function(f, LowDensityRemoval=0.1, Verbose=FALSE){
+
+    if(LowDensityRemoval == 0){ # do not want to remove low density on the rerun
+        return(list(frame=f, rem.ind=NULL))
+    }
 
     Time.loc <- which(tolower(f@parameters@data$name) == "time"); names(Time.loc) <- NULL
+
+    if(length(Time.loc) == 0){ # only plays a role if users are using removeLowDensSections independently of flowCut
+        message("There is no time channel. removeLowDensSections only works with a time channel.")
+        return(list(frame=f, rem.ind=NULL))
+    }
+
     minTime <- min(f@exprs[ , Time.loc])
     maxTime <- max(f@exprs[ , Time.loc])
 
