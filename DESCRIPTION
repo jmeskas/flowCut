@@ -6,10 +6,10 @@ Date: 2017-11-20
 Author: Justin Meskas, Sherrie Wang
 Maintainer: Justin Meskas <jmeskas@bccrc.ca>
 Depends: R (>= 3.4), flowCore
-Imports: flowDensity, Cairo, e1071
+Imports: flowDensity, Cairo, e1071, grDevices, graphics, stats
 Description: Removing segments that show statistical differences from other segments.
-Suggests: RUnit, BiocGenerics
-biocViews: FlowCytometry
+Suggests: RUnit, BiocGenerics 
+biocViews: FlowCytometry, Preprocessing, QualityControl, CellBasedAssays
 License: file LICENSE
 LazyLoad: yes
 RoxygenNote: 6.0.1

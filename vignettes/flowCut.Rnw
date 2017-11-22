@@ -48,237 +48,207 @@
 
 \tableofcontents
 
-\newpage
+%\newpage
 
-% <<echo=FALSE>>=
-% options(width=40)
-% @
+\bigbreak
+\bigbreak
+\bigbreak
+
 
 \section{Loading the Library}
 
 To install {\it \textbf{flowCut}}, type {\it source(``http://bioconductor.org/biocLite.R'')} into R and then type \\{\it biocLite(``flowCut'')}. For more information on installation guidelines, see the Bioconductor and the CRAN websites. Once installed, to load the library, type the following into R:
-<<loadlibs, echo=TRUE, fig=FALSE, results=hide>>=
+
+<<label=Load_Library, echo=TRUE, fig=FALSE, results=hide>>=
 library("flowCut")
 @
+
 \section{Running {\it \textbf{flowCut}}}
 \subsection{Introduction}
 
-{\it \textbf{flowCut}} automatically removes outlier events in flow cytometry data files due to abnormal flow resulting from clogs and other common technical problems. Our approach is based on identifying both regions of low density and segments (default size of 500 events) that are significantly different from the rest.
+{\it \textbf{flowCut}} automatically removes outlier events in flow cytometry data files due to abnormal flow behaviours resulting from clogs and other common technical problems. Our approach is based on identifying both regions of low density and segments (default size of 500 events) that are significantly different from the rest.
 
-Eight measures of each segment (mean, median, 5th, 20th, 80th and 95th percentile, second moment (variation) and third moment (skewness)) are calculated. The density of the summation, over both the 8 measures of each segment and all cleaning channels, along with the two parameters ({\it MaxValleyHgt} and {\it MaxPercCut}) will determine which segments are significantly different from the other segments. The segments that are significantly different will have all of their events removed. We also flag files if they display any of the following: 1) not monotonically increasing in time, 2) sudden changes in fluorescence, 3) large gradual change of fluorescence in all channels, or 4) very large gradual change of fluorescence in one channel.
+Eight measures of each segment (mean, median, 5th, 20th, 80th and 95th percentile, second moment (variation) and third moment (skewness)) are calculated. The density of the summation, over both the 8 measures of each segment and all cleaning channels, gives a density of summed measures distribution. This distribution, accompanied with two parameters ({\it MaxValleyHgt} and {\it MaxPercCut}), will determine which segments are significantly different from the other segments. The segments that are significantly different will have all of their events removed. We also flag files if they display any of the following: 1) not monotonically increasing in time, 2) sudden changes in fluorescence, 3) large gradual change of fluorescence in all channels, or 4) very large gradual change of fluorescence in one channel. (During this vignette four digit codes of only Ts and Fs will be seen, ex. TFTF. These codes are a pass/flag of the 4 flagging test).
 
-\subsection{Simple Example}
-The {\it \textbf{flowCut}} dataset contains flowFrames borrowed from the {\it flowCore's} GvHD dataset and from FlowRepository, an open source cytometry data repository. The first two flowFrames are GvHD flowFrame objects `s9a06' and `s5a07'.  The third flowFrame is from FlowRespository's FR-FCM-ZZ7E `Macrophages \+ oATP.fcs', the fourth is from FlowRespository's `FR-FCM-ZZVB Specimen\_001\_B6 LSK.fcs'. We pre-loaded the compensated and transformed data into the {\it \textbf{flowCut}} library. To load all the data used in the examples of this vignette, type:
-\begin{small}
-<<fig=FALSE, results=hide>>=
+\subsection{Data}
+The {\it \textbf{flowCut}} dataset contains flowFrames borrowed from the {\it flowCore's} GvHD dataset and from FlowRepository, an open source cytometry data repository. The first two flowFrames are GvHD flowFrame objects `s9a06' and `s5a07'.  The third flowFrame is from FlowRespository's experiment FR-FCM-ZZ7E with file name `Macrophages $+$ oATP.fcs'. The fourth is from FlowRespository's experiment FR-FCM-ZZVB with file name `Specimen\_001\_B6 LSK.fcs'. We pre-loaded the compensated and transformed data into the {\it \textbf{flowCut}} library. To load all the data used in the examples of this vignette, type:
+
+<<label=Load_Data, fig=FALSE, results=hide>>=
 data(flowCutData)
 @
-\end{small}
 
-We run {\it \textbf{flowCut}} with default parameters with the exception of {\it Plot} that is changed to ``All'' so we can see the results, and {\it FileID} that gives an name to the figure when saving:
+\subsection{Simple Example}
+We run {\it \textbf{flowCut}} with default parameters with the exception of {\it FileID} that gives a name to the figure and {\it Plot} that is changed to ``All'' so we can see the results even if the file is perfectly cleaned. The default for {\it Plot} is ``Flagged Only'' which would only plot the flagged files. Throughout this vignette all the examples will produce a figure in a folder called flowCut in your current directory. As an alternative {\it PrintToConsole} can be changed to ``TRUE'' which allows the image to be printed in R as opposed to being saved as a file. If you would prefer this alternative, simply add {\it PrintToConsole=TRUE} to all {\it \textbf{flowCut}} commands.
 
-<<label=SimpleExample_Command, eval=FALSE, fig=FALSE, echo=TRUE, keep.source=TRUE>>=
+% And the default for {\it PrintToConsole} is ``FALSE'', which would print the images to the folder called flowCut in your current directory. These defaults were chosen because we believe {\it \textbf{flowCut}} will mostly be used on large datasets where a manual validation on all figures is not practical, and we also believe {\it \textbf{flowCut}} may have some false positives but a very low amount of false negatives when it flags a file. With that in mind, {\it PrintToConsole} will be set to ``TRUE'' throughout this vignette, but in practice its default ``FALSE'' would be used more often.
+
+
+
+<<label=SimpleExample_Image, fig=FALSE, echo=TRUE, height=22, width=22, keep.source=TRUE>>=
 res_flowCut <- flowCut(flowCutData[[1]], FileID = 1, Plot = "All")
 @
 
-\begin{figure}[H]\begin{center}
-\begin{small}
-<<label=SimpleExample_Image, fig=TRUE, echo=FALSE, height=22, width=22, keep.source=FALSE>>=
-res_flowCut <- flowCut(flowCutData[[1]], FileID = 1, Plot = "All", PrintToConsole = TRUE)
-@
-\end{small}
-  \caption{Running {\it \textbf{flowCut}} with the default values.}
-  \label{fig:SimpleExample}
-\end{center}\end{figure}
+\begin{figure}[H]
+\centering
+%\includegraphics{fig_SimpleExample.png}
+\includegraphics[width=150mm, height=150mm]{flowCut/1_Passed_TTTT.png}
+\caption{Running {\it \textbf{flowCut}} with the default values.}
+\label{fig:SimpleExample}
+\end{figure}
 
-A list containing four elements will be returned. The first element, {\it \$frame}, is the flowFrame file returned after {\it \textbf{flowCut}} has cleaned the flowFrame. The second element, {\it \$ind}, is a vector containing indices of segments being removed, in relation to the original flowframe. The third element, {\it \$data}, is a table containing computational information that users can access. The fourth element, {\it \$worstChan}, is the index of the channel with the most drift over time before cleaning. The {\it \$data} is shown here as an example:
+A list containing four elements will be returned. The first element, {\it \$frame}, is the flowFrame file returned after {\it \textbf{flowCut}} has cleaned the flowFrame. The second element, {\it \$ind}, is a vector containing indices of segments being removed, in relation to the original flowFrame. The third element, {\it \$data}, is a table containing computational information that users can access. The fourth element, {\it \$worstChan}, is the index of the channel with the most drift over time before cleaning. The {\it \$data} element is shown here as an example:
 
 <<label=SimpleExample_Data, fig=FALSE, echo=TRUE>>=
 res_flowCut$data
 @
 
 
-Having the {\it Plot} parameter set to ``All'' above created a plot in the {\it \textbf{flowCut}} folder under your current working directory, which is the same as Figure \ref{fig:SimpleExample}. The first five sub-plots in Figure \ref{fig:SimpleExample} are the channels that undergo fluorescence analysis from {\it \textbf{flowCut}}. The numbers on top of each of the five plots indicate mean drift before cutting, mean drift after cutting and the max one step change (in the bracket). The mean drift is calcuated as the difference of the maximum mean and the minimum mean divided by the 2-98 percentile of the data. This would catch any step changes or fluctuations in the file. If the mean drift becomes significant, the file is flagged. The parameters {\it MeanOfMeans} and {\it MaxOfMeans} control the strickness of these flags, and we recommend not to change these numbers unless a greater or weaker strickness is desired. The {\it MeanOfMeans} parameter is the threshold for the average of the range of means of all channels, where {\it MaxOfMeans} is the threshold for just for the channel with the highest range of means. The value in the bracket is associated to the parameter {\it MaxContin}, which indicates the changes of the means between adjacent segments in each channel. This parameter would catch abrupt mean changes such as spikes. The default is 0.1 and we recommend not to change this value.
+Having the {\it Plot} parameter set to ``All'' above created a plot in the flowCut folder under your current working directory, which is the same as Figure \ref{fig:SimpleExample}. The first five sub-plots in Figure \ref{fig:SimpleExample} are the channels that undergo fluorescence analysis from {\it \textbf{flowCut}}. The segments that are removed because they are significantly different are coloured black. The removed low density sections lower than {\it LowDensityRemoval}, defaulted at 0.1 (10$\%$), are coloured grey.
 
-The top and bottom horizontal dark brown lines correspond to the 98th and the 2nd percentile of the full data after cleaning, respectively. The 98th and 2nd percentile lines for the data before cleaning is coloured in light brown, but is most likely not seen. Most of the time these two sets of lines are indistinguishable on the plot because there is no significant change in percentiles before and after cleaning. We found the top and bottom 2\% of the events are spread out too much and do not serve as a nice max and min value of the file when comparing the range of the means to the range of the file.
+The numbers on top of each of the five plots indicate mean drift before cutting, mean drift after cutting and the max one step change (in the bracket). The mean drift is calculated as the difference of the maximum mean and the minimum mean divided by the 2-98 percentile difference of the data. This would catch any step changes or fluctuations in the file. If the mean drift becomes significant, the file is flagged. The parameters {\it MeanOfMeans} and {\it MaxOfMeans} control the strictness of these flags, and we recommend not to change these numbers unless a greater or weaker strictness is desired. The {\it MeanOfMeans} parameter is the threshold for the average of the range of means of all channels, where {\it MaxOfMeans} is the threshold just for the channel with the highest range of means. The value in the bracket is associated to the parameter {\it MaxContin}, which indicates the changes of the means between adjacent segments in each channel. This parameter would catch abrupt mean changes such as spikes. The default is 0.1 and we recommend not to change this value.
 
-Connecting all the means of each segment gives the brown line in the middle. Sometimes you can see that the brown line has some pink parts. The pink parts are the mean of each segment before cleaning. With the difference between pink and brown, the user can see which segments are removed, and perhaps understand why as well. Of course this only shows the mean measure of the 8 measures used to judge if a segment is removed or not, so information on the other 7 measures is not shown. The segments that are removed are coloured black.
+The top and bottom horizontal dark brown lines correspond to the 98th and the 2nd percentile of the data after cleaning. The 98th and 2nd percentile lines for the full data before cleaning are coloured in light brown, but are most likely not seen. Most of the time these two sets of lines are indistinguishable on the plot because there is no significant change in percentiles before and after cleaning. We found the top and bottom 2$\%$ of the events are spread out too much and do not serve as a nice max and min value of the file when comparing the range of the means to the range of the file.
+
+Connecting all the means of each segment gives the brown line in the middle. Sometimes you can see that the brown line has some pink parts. The pink parts are the mean of each segment before cleaning. With the difference between pink and brown, the user can see which segments are removed, and perhaps understand why as well. Of course this only shows the mean measure of the 8 measures used to judge if a segment is removed or not, so information on the other 7 measures is not shown.
 
 The 8 statistical measures {\it \textbf{flowCut}} calculates from each segment are summed up (and over all cleaning channels) to obtain a single statistical number for each segment. If we plot the density of these summed measures for every segment, then we obtain the last plot in Figure \ref{fig:SimpleExample}. The {\it deGate} function in {\it flowDensity} gives us the cutoff line on the density curve. Any segment with a summed value larger than the cutoff line will be removed.
 
-\subsection{Changing the Parameter MaxValleyHgt}
-This example will show what the parameter {\it MaxValleyHgt} does and how changing the value will affect the amount of segment deletions.
+The title of the image will display if the file passed or it was flagged (This information is also visable in {\it \$data}). In Figure \ref{fig:SimpleExample} a ``1 Passed TTTT'' is displayed. The ``1'' is for the file's ID, ``Passed'' is stating the file passed and ``TTTT'' is showing that it has passed all flagging tests (please see Introduction for the four flagging tests).
 
-The {\it MaxValleyHgt} parameter is closely related to the density of summed measures. {\it MaxValleyHgt} defines the upper limit of the ratio of the height of the intersection point where the cutoff line meets the density plot and the height of the maximum peak. Setting the number higher can potentially cut off more events, whereas lowering the number will potentially reduce it.
+\subsection{Changing the Parameter {\it \textbf{MaxValleyHgt}}}
+This example will show what {\it MaxValleyHgt} does and how changing the value will affect the segment deletion analysis.
+
+The {\it MaxValleyHgt} parameter plays a role with calculating the threshold on the density of summed measures distribution. {\it MaxValleyHgt} defines the upper limit of the ratio of the height of the intersection point where the cutoff line meets the density plot and the height of the maximum peak. Setting the number higher can potentially cut off more events, whereas lowering the number will potentially reduce it.
 
 For example, if we set {\it MaxValleyHgt} to 0.01 we have:
 
-<<label=MaxValleyHgt0p01_Command, eval=FALSE, fig=FALSE, echo=TRUE, keep.source=TRUE>>=
+<<label=MaxValleyHgt0p01_Image, fig=FALSE, echo=TRUE, height=22, width=22, keep.source=TRUE>>=
 res_flowCut <- flowCut(flowCutData[[2]], FileID=2, Plot ="All", MaxValleyHgt = 0.01)
 @
 
-\begin{figure}[H]\begin{center}
-  \begin{small}
-<<label=MaxValleyHgt0p01_Image, fig=TRUE, echo=FALSE, height=22, width=22, keep.source=FALSE>>=
-res_flowCut <- flowCut(flowCutData[[2]], FileID=2, Plot ="All", PrintToConsole = TRUE, MaxValleyHgt = 0.01)
-@
-  \end{small}
-  \caption {Running {\it \textbf{flowCut}} with {\it MaxValleyHgt} changed to 0.01.}
-  \label{fig:MaxValleyHgt0p01}
-\end{center}\end{figure}
+\begin{figure}[H]
+\centering
+\includegraphics[width=150mm, height=150mm]{flowCut/2_Flagged_TFTF.png}
+\caption {Running {\it \textbf{flowCut}} with {\it MaxValleyHgt} changed to 0.01.}
+\label{fig:MaxValleyHgt0p01}
+\end{figure}
 
-The file is flagged because the statistically different regions are not completely removed, shown in Figure \ref{fig:MaxValleyHgt0p01}. There are three small bumps in the `Density of summed measures' sub-plot, which each represent one segment. Also note, that the threshold is set at around 45. If we change the {\it MaxValleyHgt} back to its default value 0.1, we get Figure \ref{fig:MaxValleyHgt0p1} and the file has passed and is cleaned properly. All three bumps/segments are removed and the threshold is set to around 33:
+The file is flagged because the statistically different regions are not completely removed, shown in Figure \ref{fig:MaxValleyHgt0p01}. There are three small bumps in the `Density of summed measures' sub-plot, which each represent one segment. Also note, that the threshold is set at around 45. If we change the {\it MaxValleyHgt} back to its default value 0.1, we get Figure \ref{fig:MaxValleyHgt0p1}. Here the file has now passed and is cleaned properly. note that the threshold is now around 33, and hence all three bumps/segments are removed:
 
-<<label=MaxValleyHgt0p1_Command, eval=FALSE,fig=FALSE, echo=TRUE, keep.source=TRUE>>=
+<<label=MaxValleyHgt0p1_Image, fig=FALSE, echo=TRUE, height=22, width=22, keep.source=TRUE>>=
 res_flowCut <- flowCut(flowCutData[[2]], FileID=3, Plot ="All", MaxValleyHgt = 0.1)
 @
 
-\begin{figure}[H]\begin{center}
-  \begin{small}
-<<label=MaxValleyHgt0p1_Image, fig=TRUE, echo=FALSE, height=22, width=22, keep.source=FALSE>>=
-res_flowCut <- flowCut(flowCutData[[2]], FileID=3, Plot ="All", PrintToConsole = TRUE, MaxValleyHgt = 0.1)
-@
-  \end{small}
-  \caption {Running {\it \textbf{flowCut}} with default {\it MaxValleyHgt}.}
-  \label{fig:MaxValleyHgt0p1}
-\end{center}\end{figure}
+\begin{figure}[H]
+\centering
+\includegraphics[width=150mm, height=150mm]{flowCut/3_Passed_TTTT.png}
+\caption {Running {\it \textbf{flowCut}} with default {\it MaxValleyHgt}.}
+\label{fig:MaxValleyHgt0p1}
+\end{figure}
 
-% \begin{figure}\begin{center}
-%   % \includegraphics[width = 5in, height = 8in,trim = 0 0.8in 0 3.2in]{2_500_Passed_MaxValleyHgt_TTTT.png}
-%   \includegraphics{flowCut-MaxValleyHgt0p02}
-%   \caption {Running {\it \textbf{flowCut}} with {\it MaxValleyHgt} changed to 0.02}
-%   \label{fig:MaxValleyHgt0p01}
-% \end{center}\end{figure}
+\subsection{Changing the Parameter {\it \textbf{MaxPercCut}}}
+Sometimes we get files that show a distinctive separation of good and undesired segments, as shown in the `Density of summed measures' sub-plot in Figure \ref{fig:MaxPercCut0p15}. We first show {\it MaxPercCut} changed to 0.15 as a demonstration:
 
-\subsection{Changing the Parameter MaxPercCut}
-Sometimes we get files that show a distinctive separation in good and bad segments, as shown in the `Density of summed measures' sub-plot in \ref{fig:MaxPercCut0p15}, where we set {\it MaxPercCut} to 0.15 as a demostration:
-
-<<label=MaxPercCut0p15_Command, eval=FALSE, fig=FALSE, echo=TRUE, keep.source=TRUE>>=
+<<label=MaxPercCut0p15_Image, fig=FALSE, echo=TRUE, height=22, width=22, keep.source=TRUE>>=
 res_flowCut <- flowCut(flowCutData[[3]], FileID=4, Plot ="All", MaxPercCut = 0.15)
 @
 
-\begin{figure}[H]\begin{center}
-\begin{small}
-<<label=MaxPercCut0p15_Image, fig=TRUE, echo=FALSE, height=22, width=22, keep.source=FALSE>>=
-res_flowCut <- flowCut(flowCutData[[3]], FileID=4, Plot ="All",
-                       PrintToConsole = TRUE, MaxPercCut = 0.15)
-@
-\end{small}
- \caption {Running {\it \textbf{flowCut}} with {\it MaxPercCut} changed to 0.05.}
- \label{fig:MaxPercCut0p15}
-\end{center}\end{figure}
+\begin{figure}[H]
+\centering
+\includegraphics[width=150mm, height=100mm]{flowCut/4_Flagged_TTFF.png}
+\caption {Running {\it \textbf{flowCut}} with {\it MaxPercCut} changed to 0.15.}
+\label{fig:MaxPercCut0p15}
+\end{figure}
 
-{\it MaxPercCut} defines the maximum percentage of events allowed to be removed. The default value is 0.2, which means {\it \textbf{flowCut}} can remove 20 percent of the total events. However, with setting it at 0.15 we did not let {\it \textbf{flowCut}} remove any segments since flowCut needs to remove more than 15\%. If we change it back to the default of 0.2 we have a result shown in Figure \ref{fig:MaxPercCut0p2}:
+{\it MaxPercCut} defines the maximum percentage of events allowed to be removed. The default value is 0.3, which means {\it \textbf{flowCut}} can remove 30 percent of the total events. However, with setting it at 0.15 we did not let {\it \textbf{flowCut}} remove any segments since {\it \textbf{flowCut}} needs to remove more than 15$\%$. If we change it back to the default of 0.3 we have a result shown in Figure \ref{fig:MaxPercCut0p2}:
 
-
-<<label=MaxPercCut0p2_Command, eval=FALSE, fig=FALSE, echo=TRUE, keep.source=TRUE>>=
-res_flowCut <- flowCut(flowCutData[[3]], FileID=5, Plot ="All", MaxPercCut = 0.2)
+<<label=MaxPercCut0p3_Image, fig=FALSE, echo=TRUE, keep.source=TRUE>>=
+res_flowCut <- flowCut(flowCutData[[3]], FileID=5, Plot ="All", MaxPercCut = 0.3)
 @
 
-\begin{figure}[H]\begin{center}
-\begin{small}
-<<label=MaxPercCut0p2_Image, fig=TRUE, echo=FALSE, height=22, width=22, keep.source=FALSE>>=
-res_flowCut <- flowCut(flowCutData[[3]], FileID=5, Plot ="All", PrintToConsole = TRUE, MaxPercCut = 0.2)
-@
-\end{small}
-  \caption{Running {\it \textbf{flowCut}} with default values.}
-  \label{fig:MaxPercCut0p2}
-\end{center}\end{figure}
+\begin{figure}[H]
+\centering
+\includegraphics[width=150mm, height=100mm]{flowCut/5_Passed_TTTT.png}
+\caption{Running {\it \textbf{flowCut}} with default {\it MaxPercCut}.}
+\label{fig:MaxPercCut0p2}
+\end{figure}
 
-With {\it MaxPercCut} set at 0.2, a large section is removed. This large section is actually much bigger than 20\%.
+With {\it MaxPercCut} set at 0.3, a large section is removed. This large section is actually much bigger than 30$\%$.
 
-<<>>=
-res_flowCut$data["\% of events removed",]
+<<label=EventsRemoved_1>>=
+res_flowCut$data["% of events removed",]
 @
 
-{\it \textbf{flowCut}} could potentially remove more depending on the nature of the file, as in this example there is a large amount of mean drift. If multiple segments have been removed in a row {\it \textbf{flowCut}} will extend this removal section until the bordering segment hasless than or equal to 1 standard deviation away from the mean of the means of the segments still not removed. To illustrate this in a different way, we can compare the results of setting {\it GateLineForce} to 44 in Figure \ref{fig:GateLineForce_44} with the result in Figure \ref{fig:MaxPercCut0p2}:
+{\it \textbf{flowCut}} could potentially remove more depending on the nature of the file. As with this example, where there is a large amount of mean drift. If multiple segments have been removed in a row, {\it \textbf{flowCut}} will extend this removal section until the bordering segment has less than or equal to 1 standard deviation away from the mean of the means of the segments still not removed.
 
-<<label=GateLineForce_44_Command, eval=FALSE, fig=FALSE, echo=TRUE, height=22, width=22, keep.source=TRUE>>=
+To convince you and to illustrate this in a different way, we can compare the results of setting {\it GateLineForce} to 44 (shown in Figure \ref{fig:GateLineForce_44}) with our previous result from Figure \ref{fig:MaxPercCut0p2}:
+
+<<label=GateLineForce_44_Image, fig=FALSE, echo=TRUE, height=22, width=22, keep.source=TRUE>>=
 res_flowCut <- flowCut(flowCutData[[3]], FileID=6, Plot ="All", GateLineForce=44)
 @
 
-\begin{figure}[H]\begin{center}
-\begin{small}
-<<label=GateLineForce_44_Image, fig=TRUE, echo=FALSE, height=22, width=22, keep.source=FALSE>>=
-res_flowCut <- flowCut(flowCutData[[3]], FileID=6, Plot ="All", PrintToConsole = TRUE, GateLineForce=44)
-@
-\end{small}
- \caption {Running {\it \textbf{flowCut}} with {\it GateLineForce} changed to 44.}
- \label{fig:GateLineForce_44}
-\end{center}\end{figure}
+\begin{figure}[H]
+\centering
+\includegraphics[width=150mm, height=100mm]{flowCut/6_Passed_TTTT.png}
+\caption {Running {\it \textbf{flowCut}} with {\it GateLineForce} set to 44.}
+\label{fig:GateLineForce_44}
+\end{figure}
 
-Even though the gathing threshold is lower we still have the same amount of events removed.
+Even though the gating threshold has changed we still have the same amount of events removed.
 
-<<>>=
-res_flowCut$data["\% of events removed",]
+<<label=EventsRemoved_2>>=
+res_flowCut$data["% of events removed",]
 @
+
+This happened because in both cases there was a large section in a row removed and {\it \textbf{flowCut}} expanded the section until all that was left was not too variant.
 
 % Comparing with Figure \ref{fig:MaxPercCut0p2}, we can see that two different gate line position resulting in the same amount of removal which is more than than 20 percent. In the presence of large amount bad events, especially in the case of large amount of mean drift as illustrated in the example, the limit of this threshold is not strickly obeyed in order to properly clean files. In cases where 20 percent is not sufficient, that is, files being flagged after first attempted removal, we recommend changing this parameter to 0.5.
 
-\subsection{Parameters AllowFlaggedRerun and UseOnlyWorstChannels}
+\subsection{Parameters {\it \textbf{UseOnlyWorstChannels}} and {\it \textbf{AllowFlaggedRerun}}}
 
-Some files contain groups of outlier events, where one group of outliers is significantly different than the others. The first round of {\it \textbf{flowCut}} will remove the most significantly different outlier groups while other outlier groups are masked out by the worst ones. This issue can be addressed by using the parameter {\it AllowFlaggedRerun}, which will rerun the algorithm a second time if it has been flagged the first time. For example, Figure \ref{fig:AllowFlaggedRerun_UseOnlyWorstChannels} shows results of {\it \textbf {flowCut}} with default values.
+Sometimes abnormal behaviours are only present in a few channels. The outlier events in these channels can be washed out when taking into consideration all measures in all channels. As a result, outliers in these channels are not properly removed. In these cases, we can use the parameter {\it UseOnlyWorstChannels} to only focus on these specific channels.
 
-<<label=AllowFlaggedRerun_UseOnlyWorstChannels_Command, eval=FALSE, fig=FALSE, echo=TRUE, height=22, width=22, keep.source=TRUE>>=
+In other cases, some files may contain two or more groups of outlier events, where one group of outliers is significantly different than the others. The first round of {\it \textbf{flowCut}} will remove the most significantly different outlier groups while other outlier groups are masked by the worst ones. This issue can be addressed by using the parameter {\it AllowFlaggedRerun}, which will rerun the algorithm a second time if it has been flagged the first time.
+
+An example of when both the above parameters are required is shown in Figure \ref{fig:AllowFlaggedRerun_UseOnlyWorstChannels}, but first showing results of {\it \textbf {flowCut}} with default values.
+
+<<label=AllowFlaggedRerun_UseOnlyWorstChannels_Image_1, fig=FALSE, echo=TRUE, height=22, width=22, keep.source=TRUE>>=
 res_flowCut <- flowCut(flowCutData[[4]], FileID=7, Plot ="All")
 @
 
-\begin{figure}[H]\begin{center}
-\begin{small}
-<<label=AllowFlaggedRerun_UseOnlyWorstChannels_Image, fig=TRUE, echo=FALSE, height=22, width=22, keep.source=FALSE>>=
-res_flowCut <- flowCut(flowCutData[[4]], FileID=7, Plot ="All", PrintToConsole = TRUE)
-@
-\end{small}
- % \includegraphics{flowCut-MaxPercCut0p3}
- \caption {Running {\it \textbf{flowCut}} with default values on one data example.}
- \label{fig:AllowFlaggedRerun_UseOnlyWorstChannels}
-\end{center}\end{figure}
+\begin{figure}[H]
+\centering
+\includegraphics[width=150mm, height=100mm]{flowCut/7_Flagged_TTTF.png}
+\caption {Running {\it \textbf{flowCut}} with the default values.}
+\label{fig:AllowFlaggedRerun_UseOnlyWorstChannels}
+\end{figure}
 
-The section for time greater than approximately 11000 is drastically different than the rest of the file, however, the section with time between 7500 and 11000 is still different enough and should be removed.
+The section for time greater than approximately 11000 is drastically different than the rest of the file, however, the section with time between 7500 and 11000 is still different enough and should be removed. The most deviant population of events have been removed. But, the file is still flagged because the third channel shows a mean drift that's more than the defaulted value for {\it MaxOfMeans}. It would be a good idea to run {\it \textbf{flowCut}} again on this file to remove the mean drift events. One thing to be noted here is that the mean drift occurs strongly in only one channel. To properly catch those events and to counter the averaging effect, we need to set the {\it UseOnlyWorstChannels} parameter to ``TRUE''. The result of the second round of cleaning and using only the worst channels is shown in Figure \ref{fig:AllowFlaggedRerun_UseOnlyWorstChannels_2}. Please note the asterisks in the figure, which show which channels were selected as the worst channels.
 
-Sometimes abnormal behaviours are only present in a few channels. The outlier events in these channels can be washed out when taking into consideration all measures in all channels. As a result, outliers in these channels are not properly removed. In this case, we can use the parameter {\it UseOnlyWorstChannels} to only focus on these specific channels.
-
-So combining the use of these two parameters we can get a cleaned file as shown in Figure \ref{fig:AllowFlaggedRerun_UseOnlyWorstChannels_2}
-
-The most deviant population of cells have been removed. However, the file is still flagged because one of the channels shows a mean drift that's more than a predefined value. It seems a good idea to run {\it \textbf{flowCut}} again on this file to remove the mean drift events. One thing to be noted here is that the mean drift only occurs in one channel. To properly catch those events and to counter the averaging effect, we need to set UseOnlyWorstChannels parameter to ``TRUE''. The result of the second time cleaning and using only worst channels is shown in Figure \ref{fig:AllowFlaggedRerun_UseOnlyWorstChannels_2}.
-
-<<label=AllowFlaggedRerun_UseOnlyWorstChannels_2_command, eval=FALSE, fig=FALSE, echo=TRUE, height=22, width=22, keep.source=TRUE>>=
-res_flowCut <- flowCut(flowCutData[[4]], FileID=8, AllowFlaggedRerun = TRUE, UseOnlyWorstChannels = TRUE)
+<<label=AllowFlaggedRerun_UseOnlyWorstChannels_Image_2, fig=FALSE, echo=TRUE, height=22, width=22, keep.source=TRUE>>=
+res_flowCut <- flowCut(flowCutData[[4]], FileID=8, AllowFlaggedRerun = TRUE,
+                    UseOnlyWorstChannels = TRUE, Plot="All")
 @
 
-\begin{figure}\begin{center}
-\begin{small}
-<<label=AllowFlaggedRerun_UseOnlyWorstChannels_2, fig=TRUE, echo=FALSE, height=22, width=22, keep.source=FALSE>>=
-res_flowCut <- flowCut(flowCutData[[4]], FileID=8, AllowFlaggedRerun = TRUE, UseOnlyWorstChannels = TRUE,
-                          PrintToConsole = TRUE)
-@
-\end{small}
-\includegraphics{Image3_500_Passed_TTTT_RemPeaks_MaxPercCut_rerun.png}
-\caption{Running {\it \textbf{flowCut}} Second Time Using Only Worst Channels}
+\begin{figure}[H]
+\centering
+\includegraphics[width=150mm, height=100mm]{flowCut/8_Passed_TTTT.png}
+\caption{Running {\it \textbf{flowCut}} a second time using only the worst channels.}
 \label{fig:AllowFlaggedRerun_UseOnlyWorstChannels_2}
-\end{center}\end{figure}
+\end{figure}
 
-%\begin{figure}\begin{center}
-% \includegraphics{Image3_500_Passed_TTTT_RemPeaks_MaxPercCut_rerun.png}
-% \caption{Running {\it \textbf{flowCut}} Second Time Using Only Worst Channels}
-% \label{fig:AllowFlaggedRerun_UseOnlyWorstChannels_2}
-%\end{center}\end{figure}
+In this example two channels were selected as the worst channels. The parameters {\it AmountMeanRangeKeep} and {\it AmountMeanSDKeep}, defaulted at 1 and 2 respectively, determine how many channels of each type of worst channel detection are chosen as a worst channel. {\it AmountMeanRangeKeep} looks for the channels that have the highest range in their segments means. {\it AmountMeanSDKeep} looks for the channels that have the highest variance (SD) in their segments means. With the defaults, {\it \textbf{flowCut}} will return either 3 worst channels if there is no overlap or 2 worst channels if there is overlap, as there is in the above example.
 
-\subsection{Segment Size}
-Segment size can significantly impact the result of {\it \textbf{flowCut}} removal. The algorithm groups 500 cell events together in a segment and compare the measurements of the segment against all other segments. Depending on the size of the file, there is an optimal cell events to be grouped together for the best performance of outlier detection. Although not entirely arbitrary, users should ensure there are at least 100 segments in total (total cell events divided by Segment) for analysis for small files. For large files, users should increase the {\it segment} parameter otherwise it could result in a large fluctuation in the means and inaccurate detection of outlier. For example, we analyzed a file of a size 65MB with {\it Segment} parameter equal to 500, that is, we group 500 cell events together. The result \ref{fig:500} shows large fluctuations in means and random segment deletions without catching the mean drift. However, as we increased the {\it Segment} to 5000, the algorithm can correctly detect and remove the part of the events that are deviant. The result is in Figure \ref{fig:5000}.
+\subsection{{\it \textbf{Segment}} Size}
+The size of {\it Segment} can significantly impact the result of {\it \textbf{flowCut}}. The algorithm groups 500 events together in a segment and compares the measures of the segment against all other segments. Depending on the size of the file, there is an optimal amount of events to be grouped together for the best performance of the outlier detection. Users should ensure there are at least 100 segments in total (total event count divided by {\it Segment}) for analysis for small files. For large files, users could increase the {\it Segment} parameter if large fluctuation in the mean is causing an inaccurate detection of outliers. For example, we analyzed a 65MB file (hence data not attached) with the {\it Segment} parameter equal to 500. The top plot in \ref{fig:500_5000} shows large fluctuations in the means and random segment deletions without catching the mean drift. However, if we increase {\it Segment} to 5000, the algorithm can correctly detect and remove the part of the events that are deviant. The result is in the bottom plot of Figure \ref{fig:500_5000}.
 
-\begin{figure}\begin{center}
- \includegraphics{Image1_500_Flagged_TFFF_AllCutMin.png}
- \caption{Running {\it \textbf{flowCut}} with Segment set at 500, the default value.}
- \label{fig:500}
-\end{center}\end{figure}
-
-
-\begin{figure}\begin{center}
- \includegraphics{Image2_5000_Passed_TTTT_AllCutMin.png}
- \caption{Running {\it \textbf{flowCut}} with Segment set to 5000.}
- \label{fig:5000}
-\end{center}\end{figure}
+\begin{figure}[H]
+\centering
+\includegraphics[width=80mm, height=80mm]{Image1_500_Flagged_TFFF_AllCutMin.png}
+\includegraphics[width=80mm, height=80mm]{Image2_5000_Passed_TTTT_AllCutMin.png}
+\caption{Running {\it \textbf{flowCut}} with {\it Segment} set to 500 and 5000.}
+\label{fig:500_5000}
+\end{figure}
 
 
 \end{document}

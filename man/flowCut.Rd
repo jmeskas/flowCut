@@ -2,20 +2,20 @@
 \alias{flowCut}
 
 \title{
-       Precise and Accurate Automated Removal of Outlier Events and Flagging of Files Based on Time Versus Fluorescence Analysis.
+    Precise and Accurate Automated Removal of Outlier Events and Flagging of Files Based on Time Versus Fluorescence Analysis.
 }
 
 \description{
-       flowCut automatically removes outlier events in flow cytometry data files due to abnormal flow resulting from clogs and other common technical problems.
+    flowCut automatically removes outlier events in flow cytometry data files due to abnormal flow resulting from clogs and other common technical problems.
 }
 
 \usage{
 
-flowCut (f, Segment=500, Channels=NULL, Directory=NULL, FileID=NULL, Plot="None",
-         MaxContin=0.1, MeanOfMeans=0.13, MaxOfMeans=0.15, MaxValleyHgt=0.1,
-         MaxPercCut=0.2, LowDensityRemoval=0.1, GateLineForce=NULL,
-         UseOnlyWorstChannels=FALSE, AmountMeanRangeKeep=1, AmountMeanSDKeep=2,
-         PrintToConsole=FALSE, AllowFlaggedRerun=FALSE, Verbose=FALSE)
+flowCut (f, Segment=500, Channels=NULL, Directory=NULL, FileID=NULL, Plot="Flagged Only",
+        MaxContin=0.1, MeanOfMeans=0.13, MaxOfMeans=0.15, MaxValleyHgt=0.1,
+        MaxPercCut=0.3, LowDensityRemoval=0.1, GateLineForce=NULL,
+        UseOnlyWorstChannels=FALSE, AmountMeanRangeKeep=1, AmountMeanSDKeep=2,
+        PrintToConsole=FALSE, AllowFlaggedRerun=FALSE, Verbose=FALSE)
 }
 \arguments{
     \item{f}{
@@ -34,7 +34,7 @@ flowCut (f, Segment=500, Channels=NULL, Directory=NULL, FileID=NULL, Plot="None"
         A character or numeric variable of a unique ID for the file. If NULL, FileID will be randomly generated.
     }
     \item{Plot}{
-        A character variable that indicates the amount of flowFrame plots that will be generated. The default is "None". Other values are "All" and "Flagged Only". "All" will generate plots for both passed and flagged files, whereas "Flagged Only" only generates plots for files that display at least one of the four flagging behaviours.
+        A character variable that indicates the amount of flowFrame plots that will be generated. The default is "Flagged Only". Other values are "All" and "None". "All" will generate plots for both passed and flagged files, "Flagged Only" only generates plots for files that display at least one of the four flagging behaviours, where as "None" will produce no figures.
     }
     \item{MaxContin}{
         A numeric value that defines the critical value at which the difference of the mean of a given segment to the mean of an adjacent segment divided by the difference of the 98th percentile and the 2nd percentile for the whole file becomes significant, indicating a sudden change in the mean for neighbouring segments. The value is defaulted at 0.1.
@@ -49,7 +49,7 @@ flowCut (f, Segment=500, Channels=NULL, Directory=NULL, FileID=NULL, Plot="None"
         A numeric value that defines the maximum height of the intersection point of the cutoff line and the density of summed measure plot. Increasing MaxValleyHgt will potentially increase the amount of events being cut. The default is 0.1.
     }
     \item{MaxPercCut}{
-        A numeric value between 0 to 1 that sets the percentage of events that a user is willing to potentially cut. If the file contains a lot of bad events, we suggest increasing this number to potentially cut off more deviates; usually 0.5 is sufficient in this case. The default is 0.2.
+        A numeric value between 0 to 1 that sets the percentage of events that a user is willing to potentially cut. If the file contains a lot of bad events, we suggest increasing this number to potentially cut off more deviates; usually 0.5 is sufficient in this case. The default is 0.3.
     }
     \item{LowDensityRemoval}{
         A numerical value between 0 and 1. Any events having a density of less than LowDensityRemoval are removed. The default is 0.1.
@@ -97,24 +97,24 @@ data(flowCutData)
 res_flowCut <- flowCut(flowCutData[[1]], Plot="All")
 # See plot in working directory/flowCut
 
-# Here is an example with decreasing the MaxValleyHgt parameter.
+# Here is an example with decreasing the MaxValleyHgt parameter, which causes a flag.
 res_flowCut <- flowCut(flowCutData[[2]], MaxValleyHgt = 0.01, Verbose = TRUE, Plot="All")
 res_flowCut$data
 
-# Here is an example with decreasing the MaxPercCut parameter.
-res_flowCut <- flowCut(flowCutData[[3]], MaxPercCut = 0.05, Verbose = TRUE)
+# Here is an example with decreasing the MaxPercCut parameter, which causes a flag.
+res_flowCut <- flowCut(flowCutData[[3]], MaxPercCut = 0.15, Verbose = TRUE)
 res_flowCut$data
 
 # Here is an example using AllowFlaggedRerun and UseOnlyWorstChannels
 res_flowCut <- flowCut(flowCutData[[4]], AllowFlaggedRerun = TRUE,
-                       UseOnlyWorstChannels = TRUE, Plot="All")
+                    UseOnlyWorstChannels = TRUE, Plot="All")
 res_flowCut$data
 
 # Alternative plotting option 1
 res_flowCut <- flowCut(flowCutData[[1]])
 library(flowDensity)
 plotDens(flowCutData[[1]], c("Time","FL1-H"))
-points(flowCutData[[1]]@exprs[res_flowCut$ind, c("Time","FL1-H")], pch=".")
+points(exprs(flowCutData[[1]])[res_flowCut$ind, c("Time","FL1-H")], pch=".")
 
 # Alternative plotting option 2
 res_flowCut <- flowCut(flowCutData[[1]], Plot="All", PrintToConsole=TRUE)

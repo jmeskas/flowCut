@@ -4,7 +4,7 @@ import(flowCore)
 importFrom(flowDensity, deGate, plotDens, getPeaks)
 importFrom(Cairo, CairoPNG)
 importFrom(grDevices, dev.off)
-importFrom(graphics, abline, lines, par, points)
+importFrom(graphics, abline, lines, par, points, title)
 importFrom(stats, density, quantile, sd)
 importFrom(e1071, moment)
 
