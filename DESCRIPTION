@@ -1,6 +1,6 @@
 Package: flowCut
 Type: Package
-Title: Removing Segments of Statistically Different Events
+Title: Precise and Accurate Automated Removal of Outlier Events and Flagging of Files Based on Time Versus Fluorescence Analysis
 Version: 0.99.0
 Date: 2017-11-20
 Author: Justin Meskas, Sherrie Wang
