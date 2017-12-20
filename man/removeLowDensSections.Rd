@@ -33,9 +33,7 @@
 }
 
 \author{
-    Maintainer: Justin Meskas <jmeskas@bccrc.ca>
-
-    Authors: Justin Meskas, Sherrie Wang
+    \strong{Maintainer}: Justin Meskas \email{jmeskas@bccrc.ca}, Sherrie Wang \email{swang@bccrc.ca}
 }
 
 
@@ -44,7 +42,8 @@ data(flowCutData)
 res_lowDens <- removeLowDensSections(flowCutData[[1]], LowDensityRemoval=0.1)
 library(flowDensity)
 plotDens(flowCutData[[1]], c("Time","FL1-H"))
-points(exprs(flowCutData[[1]])[res_lowDens$rem.ind, c("Time","FL1-H")], pch=".", col="grey")
+points(exprs(flowCutData[[1]])[res_lowDens$rem.ind, c("Time","FL1-H")],
+    pch=".", col="grey")
 }
 
 \keyword{FlowCytData}

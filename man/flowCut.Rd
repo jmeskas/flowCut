@@ -86,9 +86,7 @@ flowCut (f, Segment=500, Channels=NULL, Directory=NULL, FileID=NULL, Plot="Flagg
 }
 
 \author{
-        Maintainer: Justin Meskas <jmeskas@bccrc.ca>
-
-        Authors: Justin Meskas, Sherrie Wang
+    \strong{Maintainer}: Justin Meskas \email{jmeskas@bccrc.ca}, Sherrie Wang \email{swang@bccrc.ca}
 }
 
 
