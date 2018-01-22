@@ -40,7 +40,9 @@ flowCut <- function(f,
         "% of events removed from segments removed",
         "Worst channel",
         "% of events removed",
-        "FileID", "Has the file passed"
+        "FileID",
+        "Type of Gating",
+        "Has the file passed"
         )
 
     # Creating a directory if none is specified
@@ -152,7 +154,8 @@ flowCut <- function(f,
     if (!is.null(Channels)){
         if (all(is.character(Channels))){
             Channels <- sort(unique(sapply(1:length(Channels), function(x) {
-                grep(tolower(Channels[x]), tolower(f@parameters@data$desc))})))
+                grep(tolower(Channels[x]), tolower(f@parameters@data$desc))
+            })))
         }
         # Forces the user not to use FSC, SSC and Time
         CleanChan.loc <- intersect(CleanChan.loc, Channels)
@@ -213,7 +216,9 @@ flowCut <- function(f,
         UseOnlyWorstChannels=UseOnlyWorstChannels,
         AmountMeanRangeKeep=AmountMeanRangeKeep,
         AmountMeanSDKeep=AmountMeanSDKeep,
-        Verbose=Verbose)
+        Verbose=Verbose
+    )
+
     deletedSegments1 <- res.temp$deletedSegments;
     quantiles1       <- res.temp$quantiles;
     storeMeans1      <- res.temp$storeMeans
@@ -244,7 +249,8 @@ flowCut <- function(f,
         print.segs.rem <- sapply(1:length(del.seg.list), function(x) {
             if( length(del.seg.list[[x]]) >= 2) {
                 paste0(del.seg.list[[x]][1], "-",
-                    del.seg.list[[x]][length(del.seg.list[[x]])])
+                    del.seg.list[[x]][length(del.seg.list[[x]])]
+                )
             } else {
                 paste0(del.seg.list[[x]][1])
             }
@@ -253,7 +259,8 @@ flowCut <- function(f,
         if (Verbose == TRUE){
             cat(paste0("Removing segments ",
                 paste0(print.segs.rem, collapse = ", "), " out of ",
-                totalNumSeg, " segments.\n")
+                    totalNumSeg, " segments.\n"
+                )
             )
         }
         resTable["How many segments have been removed", ] <-
@@ -272,7 +279,7 @@ flowCut <- function(f,
         f@exprs <- f@exprs[-removed.ind, ]
     }
     resTable["% of events removed from segments removed", ] <-
-        as.character( round(length(removed.ind) / nrow(f.org), digits=4) * 100 )
+        as.character( round(length(removed.ind) / nrow(f.org), digits=4) * 100)
 
     #### 2nd Time: Calculate means and which segments will be removed #########
     # This time we are only interested in calculations of quantiles, means,
@@ -321,7 +328,7 @@ flowCut <- function(f,
         if ( Verbose == TRUE){
             message("The file has been flagged. The largest continuous jump ",
                 "was larger than ", MaxContin*100, "% of the range of the ",
-                "2-98 percentile of the full data."))
+                "2-98 percentile of the full data.")
         }
     } else {
         resTable["Continuous - Pass", ] <- "T"
@@ -337,7 +344,7 @@ flowCut <- function(f,
         if ( Verbose == TRUE ){
             message("The file has been flagged. The means differ more than ",
                 MeanOfMeans*100, "% of the range of the 2-98 percentile of ",
-                "the full data."))
+                "the full data.")
         }
         resTable["Mean of % - Pass", ] <- "F"
     } else {
@@ -351,8 +358,8 @@ flowCut <- function(f,
         round(max(meanRangePerc2, na.rm = TRUE), digits=3)
     # use 1 because we want the worst marker before any corrections.
     worstChan <- min(which(meanRangePerc1 == max(meanRangePerc1, na.rm=TRUE)))
-    names.worschan <- NULL
-    f@parameters@data$name[worstChan]; names(names.worschan) <- NULL
+    names.worschan <- f@parameters@data$name[worstChan];
+    names(names.worschan) <- NULL
     resTable["Worst channel", ] <- names.worschan
     if ( resTable["Max of % of range of means divided by range of data", ] >=
         MaxOfMeans) {
@@ -407,16 +414,16 @@ flowCut <- function(f,
     if (Verbose == TRUE){ cat("Type of Gating: ", typeOfGating, ".\n", sep="")}
 
     #### Plotting #############################################################
-    if (resTable["Is it monotonically increasing in time", ] == "T")
-        PassedMono   <- "T"     } else { PassedMono   <- "F"
-    if (resTable["Continuous - Pass", ]                      == "T")
-        PassedCont   <- "T"     } else { PassedCont   <- "F"
-    if (resTable["Mean of % - Pass", ]                       == "T")
-        PassedMean   <- "T"     } else { PassedMean   <- "F"
-    if (resTable["Max of % - Pass", ]                        == "T")
-        PassedMax    <- "T"     } else { PassedMax    <- "F"
-    if (resTable["Has the file passed", ]                    == "T")
-        FlaggedOrNot <- "Passed"} else { FlaggedOrNot <- "Flagged"
+    if (resTable["Is it monotonically increasing in time", ] == "T"){
+        PassedMono   <- "T"     } else { PassedMono   <- "F" }
+    if (resTable["Continuous - Pass", ]                      == "T"){
+        PassedCont   <- "T"     } else { PassedCont   <- "F" }
+    if (resTable["Mean of % - Pass", ]                       == "T"){
+        PassedMean   <- "T"     } else { PassedMean   <- "F" }
+    if (resTable["Max of % - Pass", ]                        == "T"){
+        PassedMax    <- "T"     } else { PassedMax    <- "F" }
+    if (resTable["Has the file passed", ]                    == "T"){
+        FlaggedOrNot <- "Passed"} else { FlaggedOrNot <- "Flagged" }
 
     if(Plot == "All" || (Plot == "Flagged Only" && FlaggedOrNot == "Flagged")){
         # z1 and z2 are the dimensions of the figure
@@ -559,108 +566,167 @@ flowCut <- function(f,
         resTableOfResTable["% of events removed", ] <-
             as.character( round((nrow(f)*as.numeric(res_flowCut$data["% of events removed", ])
                 + nrow(f.org)*as.numeric(resTable["% of events removed", ]))/ nrow(f.org), digits=4) )
-
         return(list(frame=res_flowCut$frame, ind=indOfInd, data=resTableOfResTable, worstChan=res_flowCut$worstChan))
     }
-
     return(list(frame=f, ind=to.be.removed, data=resTable, worstChan=worstChan))
 }
-
-
 
 
 
 ################################################
 # Remove sections that have a very low density #
 ################################################
-# The sections that have a density of less than LowDensityRemoval (defaulted at 10%) of the maximum density are removed
-# An additional 2.5% of the range of these low density regions on either side is also removed because it is very common to have a burst of events before or after these low density sections
-# Because the density functions indices do not match with the flowFrames indices, density function indices need to convert to flowFrame indices.
+# The sections that have a density of less than LowDensityRemoval
+#  (defaulted at 10%) of the maximum density are removed.
+# An additional 2.5% of the range of these low density regions on either side
+#  is also removed because it is very common to have a burst of events before
+#  or after these low density sections.
+# Because the density functions indices do not match with the flowFrames
+#  indices, density function indices need to convert to flowFrame indices.
 removeLowDensSections <- function(f, LowDensityRemoval=0.1, Verbose=FALSE){
 
-    if(LowDensityRemoval == 0){ # do not want to remove low density on the rerun
+    if(LowDensityRemoval == 0){ # dont want to remove low density on the rerun
         return(list(frame=f, rem.ind=NULL))
     }
 
-    Time.loc <- which(tolower(f@parameters@data$name) == "time"); names(Time.loc) <- NULL
+    Time.loc <- which(tolower(f@parameters@data$name) == "time")
+    names(Time.loc) <- NULL
 
-    if(length(Time.loc) == 0){ # only plays a role if users are using removeLowDensSections independently of flowCut
-        message("There is no time channel. removeLowDensSections only works with a time channel.")
+    # only plays a role if users are using removeLowDensSections independently
+    #  of flowCut
+    if(length(Time.loc) == 0){
+        message("There is no time channel. removeLowDensSections only works ",
+                "with a time channel.")
         return(list(frame=f, rem.ind=NULL))
     }
 
     minTime <- min(f@exprs[ , Time.loc])
     maxTime <- max(f@exprs[ , Time.loc])
 
-    dens.f <- density(f@exprs[ , Time.loc], n= nrow(f), adjust = 0.1) # Change flow frame data into density
-    low.dens.removeIndLowDens <- which(dens.f$y <= LowDensityRemoval*max(dens.f$y)) # Extracting indices that has density values below 10% or a user-specified threshold
+    # Change flow frame data into density
+    dens.f <- density(f@exprs[ , Time.loc], n= nrow(f), adjust = 0.1)
+    # Extracting indices that has density values below 10% or a user-specified threshold
+    low.dens.removeIndLowDens <-
+        which(dens.f$y <= LowDensityRemoval*max(dens.f$y))
 
     # Split the consectutive sections into separate elements in the list
-    range.low.dens <- split(low.dens.removeIndLowDens, cumsum(c(1, diff(low.dens.removeIndLowDens) != 1)))
+    range.low.dens <- split(
+        low.dens.removeIndLowDens,
+        cumsum(c(1, diff(low.dens.removeIndLowDens) != 1))
+    )
 
-    if (length(range.low.dens) != 0 ){ # If there are indices left in range.low.dens to be removed
+    # If there are indices left in range.low.dens to be removed
+    if (length(range.low.dens) != 0 ){
 
-        range.low.dens <- lapply(1:length(range.low.dens), function(x){ range(range.low.dens[[x]]) }) #change groups of indices to ranges
+        # change groups of indices to ranges
+        range.low.dens <- lapply(1:length(range.low.dens), function(x){
+            range(range.low.dens[[x]])
+            })
         # Add 2.5% each way to the range.
         range.low.dens <- lapply(1:(length(range.low.dens)), function(x){
             range.temp <- range.low.dens[[x]][2]- range.low.dens[[x]][1]
-            c( max(round(range.low.dens[[x]][1]-0.025*range.temp), 1),
-                min(round(range.low.dens[[x]][2]+0.025*range.temp), length(dens.f$y)) )
+            c(  max(round(range.low.dens[[x]][1]-0.025*range.temp), 1),
+                min(round(range.low.dens[[x]][2]+0.025*range.temp),
+                length(dens.f$y))
+            )
         })
 
         # Change density function indices to time coordinates
-        range.low.dens <- lapply(1:length(range.low.dens), function(x){ c(dens.f$x[range.low.dens[[x]][1]], dens.f$x[range.low.dens[[x]][2]]) } )
+        range.low.dens <- lapply(1:length(range.low.dens), function(x){
+            c(dens.f$x[range.low.dens[[x]][1]],
+              dens.f$x[range.low.dens[[x]][2]]
+            )
+        })
 
         removeIndLowDens <- NULL
 
-        # Change time coordinates to flowframe indices, removeIndLowDens contains flowframe indices to be removed
+        # Change time coordinates to flowframe indices, removeIndLowDens
+        #  contains flowframe indices to be removed
         for ( b2 in 1:length(range.low.dens) ){
-            removeIndLowDens <- c(removeIndLowDens, intersect(which(f@exprs[ , Time.loc] >= range.low.dens[[b2]][1]),
-                                                            which(f@exprs[ , Time.loc] <= range.low.dens[[b2]][2])) )
+            removeIndLowDens <- c(
+                removeIndLowDens,
+                intersect(
+                    which(f@exprs[ , Time.loc] >= range.low.dens[[b2]][1]),
+                    which(f@exprs[ , Time.loc] <= range.low.dens[[b2]][2])
+                )
+            )
         }
 
         if (length(removeIndLowDens) == 0 ){
-            if (Verbose == TRUE){ cat("None deleted from flowCut low dens removal.\n") }
+            if (Verbose == TRUE){
+                cat("None deleted from flowCut low dens removal.\n")
+            }
         } else {
             temp.text <- range.low.dens # Create temp.text for printing to console purposes
 
             # Check if the ranges of time coordinates exceed the maxTime and minTime, if so, update the end points
-            if( temp.text[[length(temp.text)]][1] < maxTime && temp.text[[length(temp.text)]][2] > maxTime ){
+            if( temp.text[[length(temp.text)]][1] < maxTime &&
+                temp.text[[length(temp.text)]][2] > maxTime ){
                 temp.text[[length(temp.text)]][2] <- maxTime
             }
-            if( temp.text[[length(temp.text)]][1] > maxTime && temp.text[[length(temp.text)]][2] > maxTime ){
+            if( temp.text[[length(temp.text)]][1] > maxTime &&
+                temp.text[[length(temp.text)]][2] > maxTime ){
                 temp.text[[length(temp.text)]] <- NULL
             }
 
-            if ( temp.text[[1]][1] < minTime && temp.text[[1]][2] > minTime ){ temp.text[[1]][1] <- minTime}
-            if ( temp.text[[1]][1] < minTime && temp.text[[1]][2] < minTime ){ temp.text[[1]] <- NULL}
+            if ( temp.text[[1]][1] < minTime && temp.text[[1]][2] > minTime ){
+                temp.text[[1]][1] <- minTime
+            }
+            if ( temp.text[[1]][1] < minTime && temp.text[[1]][2] < minTime ){
+                temp.text[[1]] <- NULL
+            }
 
             for( p1 in 1:length(temp.text)){
-                temp.text[[p1]] <- paste(round(temp.text[[p1]], digits = 2), collapse = " to ")
+                temp.text[[p1]] <-
+                    paste(round(temp.text[[p1]], digits = 2), collapse=" to ")
             }
-            temp.text <- paste(temp.text, collapse = ", ") # Converts to text-form for output
+            # Converts to text-form for output
+            temp.text <- paste(temp.text, collapse = ", ")
 
-            if (Verbose == TRUE){ cat(paste0("Removing low density ranges ", temp.text, ".\n"))}
+            if (Verbose == TRUE){
+                cat(paste0("Removing low density ranges ", temp.text, ".\n"))
+            }
             f@exprs <- f@exprs[-removeIndLowDens, ]
         }
     } else { # If there are no indices to be removed
-
-        if (Verbose == TRUE){cat("None deleted from flowCut low dens removal.\n")}
+        if (Verbose == TRUE){
+            cat("None deleted from flowCut low dens removal.\n")
+        }
         removeIndLowDens <- NULL
     }
     return(list(frame=f, rem.ind=removeIndLowDens))
 }
 
-##################################################
+
+
+######################################################
 # Calculate means and which segments will be removed #
-##################################################
+######################################################
 # All events are broken down into segments for analysis
-# Eight measures of each segment (mean, median, 5th, 20th, 80th and 95th percentile, second moment(variation) and third moment (skewness)) are calculated
-# The regions where these eight measures are significantly different from the rest will be removed
-calcMeansAndSegmentsRemoved <- function(f, Segment, CleanChan.loc, FirstOrSecond, MaxValleyHgt, MaxPercCut, MaxContin, MeanOfMeans, MaxOfMeans,
-                                        GateLineForce, UseOnlyWorstChannels, AmountMeanRangeKeep, AmountMeanSDKeep, Verbose){
+# Eight measures of each segment (mean, median, 5th, 20th, 80th and 95th
+#  percentile, second moment(variation) and third moment (skewness)) are
+#  calculated. The regions where these eight measures are significantly
+#  different from the rest will be removed.
+calcMeansAndSegmentsRemoved <- function(
+    f,
+    Segment,
+    CleanChan.loc,
+    FirstOrSecond,
+    MaxValleyHgt,
+    MaxPercCut,
+    MaxContin,
+    MeanOfMeans,
+    MaxOfMeans,
+    GateLineForce,
+    UseOnlyWorstChannels,
+    AmountMeanRangeKeep,
+    AmountMeanSDKeep,
+    Verbose
+    ){
+
     # f is the flow frame
-    # FirstOrSecond - parameter used to determine what calculation or process will be performed
+    # FirstOrSecond - parameter used to determine what calculation or process
+    #  will be performed
 
     deletedSegments <- NULL
     meanRangePerc   <- NULL
@@ -669,12 +735,15 @@ calcMeansAndSegmentsRemoved <- function(f, Segment, CleanChan.loc, FirstOrSecond
     storeMeans <- list()
     quantiles  <- list()
     totalNumSeg <- floor(nrow(f@exprs)/Segment)
-    Time.loc <- which(tolower(f@parameters@data$name) == "time"); names(Time.loc) <- NULL
+    Time.loc <- which(tolower(f@parameters@data$name) == "time");
+    names(Time.loc) <- NULL
     maxDistJumped <- rep(0, max(CleanChan.loc))
-    # Calcuate all means except for the last segment. Each segment containing 500 (Segments = 500) events
+    # Calcuate all means except for the last segment.
+    # Each segment containing 500 (Segments = 500) events
     for ( k in 1:(totalNumSeg-1)){
         temp <- f@exprs[Segment*(k-1)+(1:Segment), Time.loc]
-        timeCentres[k] <- mean(temp) # timeCentres contains the means of each segment
+        # timeCentres contains the means of each segment
+        timeCentres[k] <- mean(temp)
     }
     # Calculating the mean of the last segment
     k <- totalNumSeg
@@ -683,32 +752,56 @@ calcMeansAndSegmentsRemoved <- function(f, Segment, CleanChan.loc, FirstOrSecond
 
     for ( j in CleanChan.loc){
         segSummary <- matrix(0, totalNumSeg, 8)
-        for ( k in 1:(totalNumSeg-1)){ # Calculating the eight features for each segment except the last one and store them in the matrix
+        # Calculating the eight features for each segment except the last one
+        #  and store them in the matrix
+        for ( k in 1:(totalNumSeg-1)){
             temp <- f@exprs[Segment*(k-1)+(1:Segment), c(j)]
-            segSummary[k, ] <- c( quantile(temp, probs = c(5,20,50,80,95)/100), mean(temp),
-                                sapply(2:3, function(x){ moment(temp, order = x, center = TRUE)}) )
+            segSummary[k, ] <-
+                c(
+                quantile(temp, probs = c(5,20,50,80,95)/100),
+                mean(temp),
+                sapply(2:3, function(x){
+                    moment(temp, order = x, center = TRUE)
+                    })
+                )
         }
-        k <- totalNumSeg # Calculating the eight features for the last segment and store them in the matrix
+        # Calculating the eight features for the last segment and store them
+        #  in the matrix
+        k <- totalNumSeg
         temp <- f@exprs[(Segment*(k-1)+1):nrow(f@exprs), c(j)]
-        segSummary[k, ] <- c( quantile(temp, probs = c(5,20,50,80,95)/100), mean(temp),
-                            sapply(2:3, function(x){ moment(temp, order = x, center = TRUE)}) )
+        segSummary[k, ] <-
+            c(
+            quantile(temp, probs = c(5,20,50,80,95)/100),
+            mean(temp),
+            sapply(2:3, function(x){
+                moment(temp, order = x, center = TRUE)
+                })
+            )
 
         storeMeans[[j]] <- segSummary[ ,6]
         quantiles[[j]] <- quantile(f@exprs[ ,j], probs = c(0,2,98,100)/100)
-        meanRangePerc[j] <- (max(storeMeans[[j]]) - min(storeMeans[[j]])) / (quantiles[[j]]["98%"]-quantiles[[j]]["2%"])
+        meanRangePerc[j] <-
+            (max(storeMeans[[j]]) - min(storeMeans[[j]])) /
+            (quantiles[[j]]["98%"]-quantiles[[j]]["2%"])
 
 
         if (FirstOrSecond == "First"){
-            segSummary <- rbind(sapply(1:ncol(segSummary), function(x) { (segSummary[ ,x]-mean(segSummary[ ,x])) / sd(segSummary[ ,x]) } ))
+            segSummary <- rbind(sapply(1:ncol(segSummary), function(x) {
+                (segSummary[ ,x]-mean(segSummary[ ,x])) / sd(segSummary[ ,x])
+            } ))
             segSummary <- replace(segSummary, is.nan(segSummary), 0)
             cellDeleteExpo <- abs(segSummary)
             # Sum up each row of the resulting matrix
-            cellDeleteExpo <- sapply(1:nrow(cellDeleteExpo), function(x) { sum(cellDeleteExpo[x, ])} )
+            cellDeleteExpo <- sapply(1:nrow(cellDeleteExpo), function(x) {
+                sum(cellDeleteExpo[x, ])
+            } )
             cellDelete[[j]] <- cellDeleteExpo
 
             temp.vect <- rep(0, length(storeMeans[[j]])-1)
             for(l in 1:(length(storeMeans[[j]])-1) ){
-                temp.vect[l] <- abs(storeMeans[[j]][l]-storeMeans[[j]][[l+1]]) / (quantiles[[j]]["98%"]-quantiles[[j]]["2%"])
+                temp.vect[l] <-
+                    abs(storeMeans[[j]][l]-storeMeans[[j]][[l+1]]) /
+                    (quantiles[[j]]["98%"]-quantiles[[j]]["2%"])
             }
             maxDistJumped[j] <- max(temp.vect)
         }
@@ -718,20 +811,28 @@ calcMeansAndSegmentsRemoved <- function(f, Segment, CleanChan.loc, FirstOrSecond
         choosenChans <- NULL
         if (UseOnlyWorstChannels == TRUE){
             if (length(which(!is.na(meanRangePerc))) >= AmountMeanRangeKeep && AmountMeanRangeKeep >= 1){
-                choosenChans <- sort(unique(c(choosenChans, sapply(sort(meanRangePerc, decreasing = TRUE)[1:AmountMeanRangeKeep],
-                                                                function(x) {which(x == meanRangePerc)} ))))
+                choosenChans <- sort(
+                    unique(c(choosenChans, sapply(sort(meanRangePerc, decreasing = TRUE)[1:AmountMeanRangeKeep],
+                        function(x) {which(x == meanRangePerc)} )))
+                )
             }
 
-            sdMeans <- sapply(1:length(storeMeans), function(x) {sd(storeMeans[[x]])} )
+            sdMeans <- sapply(1:length(storeMeans), function(x) {
+                sd(storeMeans[[x]])
+            } )
 
             if( length(which(!is.na(sdMeans))) >= AmountMeanSDKeep && AmountMeanSDKeep >= 1 ) {
-                choosenChans <- sort(unique(c(choosenChans, sapply(sort(sdMeans, decreasing = TRUE)[1:AmountMeanSDKeep],
-                                                                function(x) {which(x == sdMeans)} ))))
+                choosenChans <- sort(
+                    unique(c(choosenChans, sapply(sort(sdMeans, decreasing = TRUE)[1:AmountMeanSDKeep],
+                        function(x) {which(x == sdMeans)})))
+                )
             }
             if ( Verbose == TRUE) {
                 cat(paste0("The channels that are selected for cutting are: ",
-                            paste0(f@parameters@data$desc[choosenChans], collapse=", "), " (", paste0(choosenChans, collapse=","), ").\n"))
-                }
+                    paste0(f@parameters@data$desc[choosenChans],collapse=", "),
+                        " (", paste0(choosenChans, collapse=","), ").\n")
+                )
+            }
 
             cellDelete <- cellDelete[choosenChans]
         }
@@ -742,22 +843,34 @@ calcMeansAndSegmentsRemoved <- function(f, Segment, CleanChan.loc, FirstOrSecond
             cellDelete2[m] <- sum(cellDelete1[m, ])
         }
 
+            # print(round( max(maxDistJumped, na.rm = TRUE), digits=3))
+            # print(MaxContin)
+            # print(round(mean(meanRangePerc, na.rm = TRUE), digits=3))
+            # print(MeanOfMeans)
+            # print(round( max(meanRangePerc, na.rm = TRUE), digits=3))
+            # print(MaxOfMeans)
+
         typeOfGating <- NULL
-        # Check if the file is nice, before removing anything. If it is, then we can avoid removing slivers.
-        if ((round( max(maxDistJumped, na.rm = TRUE), digits=3) < MaxContin  )&&
-            (round(mean(meanRangePerc, na.rm = TRUE), digits=3) < MeanOfMeans)&&
-            (round( max(meanRangePerc, na.rm = TRUE), digits=3) < MaxOfMeans )&&
+        # Check if the file is nice, before removing anything.
+        # If it is, then we can avoid removing slivers.
+        if ((round( max(maxDistJumped, na.rm=TRUE), digits=3) < MaxContin  )&&
+            (round(mean(meanRangePerc, na.rm=TRUE), digits=3) < MeanOfMeans)&&
+            (round( max(meanRangePerc, na.rm=TRUE), digits=3) < MaxOfMeans )&&
             is.null(GateLineForce)){
             densityGateLine <- NULL
 
-            range_7SD <- c(mean(cellDelete2)-7*sd(cellDelete2), mean(cellDelete2)+7*sd(cellDelete2))
+            range_7SD <-  c(mean(cellDelete2)-7*sd(cellDelete2),
+                            mean(cellDelete2)+7*sd(cellDelete2))
             densityGateLine <- range_7SD[2]
-            deletedSegments <- union(which(cellDelete2 < range_7SD[1]), which(cellDelete2 > range_7SD[2]))
+            deletedSegments <-    union(which(cellDelete2 < range_7SD[1]),
+                                        which(cellDelete2 > range_7SD[2]))
             typeOfGating <- paste0(typeOfGating, "7SD")
             cellDelete2.org <- cellDelete2
+            print("7SD")
         } else {
             # Finding outliers using by plotting density of the 8 measures,
-            ## the index of cells that have 8 measures significantly different than the rest will be returned
+            #  the index of cells that have 8 measures significantly different
+            #  than the rest will be returned
             peaks_info  <- getPeaks(cellDelete2, tinypeak.removal = 0.1)
             peaks_xind  <- peaks_info$Peaks
             peaks_value <- which(density(cellDelete2)$x %in% peaks_xind)
@@ -765,27 +878,44 @@ calcMeansAndSegmentsRemoved <- function(f, Segment, CleanChan.loc, FirstOrSecond
             peak_max    <- max(density(cellDelete2)$y)
 
             cellDelete2.org <- cellDelete2
-            # Create very similar data that wont have a very large value in the distribution if there was one very obvious outlier.
-            ## this allows deGate to be able to gate without resolution issues.
-            cellDelete2 <- cellDelete2[which( cellDelete2 <= (mean(cellDelete2)+5*sd(cellDelete2)) )]
-            all_cut <- deGate(cellDelete2, tinypeak.removal = 0.001, all.cuts = TRUE, upper = TRUE, percentile = .95, verbose = F)
+            # Create very similar data that wont have a very large value in the
+            #  distribution if there was one very obvious outlier.
+            #  this allows deGate to be able to gate without resolution issues.
+            cellDelete2 <- cellDelete2[which( cellDelete2 <=
+                            (mean(cellDelete2)+5*sd(cellDelete2)) )]
+
+            all_cut <- deGate(cellDelete2, tinypeak.removal = 0.001,
+                            all.cuts = TRUE, upper = TRUE, verbose = F)
+
             if (!anyNA(all_cut)){
-                # We need to set a limit on peaks because we don't want to overcut
+                # We need to set a limit on peaks
+                #  because we don't want to overcut
                 if (length(peaks_xind) > 1){
                     sn <- NULL
                     for ( ml in 1:(length(peaks_xind)-1) ){
-                        ind <- intersect (which(all_cut > peaks_xind[ml]), which(all_cut < peaks_xind[ml+1]))
+                        ind <- intersect   (which(all_cut > peaks_xind[ml  ]),
+                                            which(all_cut < peaks_xind[ml+1]))
                         y_ind <- which(density(cellDelete2)$x %in% all_cut[ind])
                         y_ind <- density(cellDelete2)$y[y_ind]
 
-                        if (abs(peaks_value[ml+1]-min(y_ind)) < abs(max(peaks_value)-min(y_ind)) * 0.015){
+                        print(ml)
+                        print(y_ind)
+                        print(peaks_value)
+
+
+                        if (abs(peaks_value[ml+1]-min(y_ind)) <
+                            abs(max(peaks_value)-min(y_ind)) * 0.015){
                             sn <- c(sn, ind)
                         }
+                        print(sn)
                     }
-                    if (length(sn)>0){ # Remove the peaks that are too small to be counted as a separate population
+                    # Remove the peaks that are too small to
+                    #  be counted as a separate population
+                    if (length(sn)>0){
                         peaks_xind <- peaks_xind[-(sn+1)]
                         all_cut <- all_cut[-sn]
-                        typeOfGating <- paste0(typeOfGating, "RemPeaks") # Remove peaks
+                        # Remove peaks
+                        typeOfGating <- paste0(typeOfGating, "RemPeaks")
                     }
                 }
             }
@@ -794,25 +924,35 @@ calcMeansAndSegmentsRemoved <- function(f, Segment, CleanChan.loc, FirstOrSecond
             all_cut_value <- density(cellDelete2)$y[all_cut_value]
 
             if (anyNA(peaks_xind)){
-                densityGateLine <- mean(density(cellDelete2)$x)/20 # In case the density is a spike
+                # In case the density is a spike
+                densityGateLine <- mean(density(cellDelete2)$x)/20
             } else {
                 if (length(peaks_xind)==1){
-                    upper_cut <- deGate(cellDelete2, tinypeak.removal = 0.1, upper = TRUE, use.upper = TRUE, alpha = 0.1, percentile = .95, verbose = F)
+                    upper_cut <- deGate(cellDelete2, tinypeak.removal = 0.1, upper = TRUE, use.upper = TRUE,
+                                        alpha = 0.1, percentile = .95, verbose = F)
                     if (!is.na(upper_cut)){
-                        # We don't want the upper cut and the all cut to be the same because that means we are cutting at the 95 percentile
+                        # We don't want the upper cut and the all cut to be the
+                        #  same because that means we are cutting at the 95 percentile
                         if (length(all_cut)==1 && upper_cut==all_cut){
-                            upper_cut <- deGate(cellDelete2, tinypeak.removal = 0.1, upper = TRUE, use.upper = TRUE, alpha = 0.05, verbose = F)
+                            upper_cut <- deGate(cellDelete2, tinypeak.removal = 0.1, upper = TRUE, use.upper = TRUE,
+                                                alpha = 0.05, verbose = F)
                             if (upper_cut==all_cut){
-                                upper_cut <- deGate(cellDelete2, tinypeak.removal = 0.1, upper = TRUE, use.upper = TRUE, alpha = 0.01, verbose = F)
+                                upper_cut <- deGate(cellDelete2, tinypeak.removal = 0.1, upper = TRUE, use.upper = TRUE,
+                                                    alpha = 0.01, verbose = F)
                             }
                         }
                     }
+
+                    # print(all_cut)
 
                     if (length(which(all_cut_value < MaxValleyHgt*peak_max))==0){
                         all_cut_min <- all_cut[1]
                     } else {
                         all_cut_min <- all_cut[min(which(all_cut_value < MaxValleyHgt*peak_max))]
                     }
+
+                    # print(all_cut_min)
+                    # print(upper_cut)
 
                     if (!is.na(upper_cut) && !is.na(all_cut_min)){
                         if (upper_cut >= all_cut_min){
@@ -823,6 +963,9 @@ calcMeansAndSegmentsRemoved <- function(f, Segment, CleanChan.loc, FirstOrSecond
                     }
 
                     densityGateLine <- max(upper_cut, all_cut_min, na.rm = TRUE)
+
+                    # print(densityGateLine)
+
                     if( densityGateLine == -Inf){ densityGateLine <- NA } # max returns -Inf if both were NA
                 } else {
                     sind <- NULL
@@ -843,7 +986,8 @@ calcMeansAndSegmentsRemoved <- function(f, Segment, CleanChan.loc, FirstOrSecond
     }
 
     if (FirstOrSecond == "Second"){
-        return(list(deletedSegments=0, quantiles=quantiles, storeMeans=storeMeans, meanRangePerc=meanRangePerc, timeCentres=timeCentres))
+        return(list(deletedSegments=0, quantiles=quantiles, storeMeans=storeMeans,
+                    meanRangePerc=meanRangePerc, timeCentres=timeCentres))
     }
     deletedSegments <- suppressWarnings(sort(unique(deletedSegments)))
 
@@ -862,13 +1006,16 @@ calcMeansAndSegmentsRemoved <- function(f, Segment, CleanChan.loc, FirstOrSecond
 
 
         if (length(range.seg.rem.only.5.or.more) >= 1){
-            if (min(unlist(range.seg.rem.only.5.or.more)) <= min(unlist(range.seg.keep))){ # Make sure range.seg.keep is first (will be skipped later because it is only length of 1)
-            range.seg.keep <- c(0, range.seg.keep)
+            # Make sure range.seg.keep is first (will be skipped later because it is only length of 1)
+            if (min(unlist(range.seg.rem.only.5.or.more)) <= min(unlist(range.seg.keep))){
+                range.seg.keep <- c(0, range.seg.keep)
             }
-            if (max(unlist(range.seg.rem.only.5.or.more)) >= max(unlist(range.seg.keep))){ # Make sure range.seg.keep is last (will be skipped later because it is only length of 1)
-            range.seg.keep <- c(range.seg.keep, max(unlist(range.seg.rem.only.5.or.more))+1)
+            # Make sure range.seg.keep is last (will be skipped later because it is only length of 1)
+            if (max(unlist(range.seg.rem.only.5.or.more)) >= max(unlist(range.seg.keep))){
+                range.seg.keep <- c(range.seg.keep, max(unlist(range.seg.rem.only.5.or.more))+1)
             }
-            for ( b2 in 1:length(range.seg.rem.only.5.or.more) ){ # Adding buffer region only when the number of consecutive segments in the group to be deleted are quite large
+            # Adding buffer region only when the number of consecutive segments in the group to be deleted are quite large
+            for ( b2 in 1:length(range.seg.rem.only.5.or.more) ){
                 length_section <- length(range.seg.rem.only.5.or.more[[b2]])
                 for (j1 in CleanChan.loc){
 
@@ -881,7 +1028,8 @@ calcMeansAndSegmentsRemoved <- function(f, Segment, CleanChan.loc, FirstOrSecond
                     for ( side.pop in list(left.pop, rght.pop)){
                         if (length(side.pop) >= 2){
                             left.side <- identical(side.pop, left.pop)
-                            if ( mean(side.pop) >= mean(main.pop)){ # Code below works for good part to be lower than bad part, so we might need to transform our data
+                            # Code below works for good part to be lower than bad part, so we might need to transform our data
+                            if ( mean(side.pop) >= mean(main.pop)){
                                 side.pop <- -(side.pop-mean(main.pop))+mean(main.pop)
                             }
                             for (k1 in 1:length(side.pop)){
@@ -891,16 +1039,21 @@ calcMeansAndSegmentsRemoved <- function(f, Segment, CleanChan.loc, FirstOrSecond
                                     } else {
                                         adding.Segments <- c(adding.Segments, range.seg.keep[[b2+1]][k1])
                                     }
-                                    side.pop <- side.pop[-length(side.pop)] # Remove last point because we want to recalculate mean and sd on progressively cleaner data
+                                    # Remove last point because we want to recalculate mean and sd on progressively cleaner data
+                                    side.pop <- side.pop[-length(side.pop)]
                                 } else {
                                     break;
                                 }
                             }
                         }
                     }
-                    adding.Segments <- c(adding.Segments,
-                                        (min(range.seg.rem.only.5.or.more[[b2]])-ceiling(length_section/5)):(min(range.seg.rem.only.5.or.more[[b2]])-1),
-                                        (max(range.seg.rem.only.5.or.more[[b2]])+1):(max(range.seg.rem.only.5.or.more[[b2]])+ceiling(length_section/5)))
+                    adding.Segments <-
+                        c(adding.Segments,
+                            (min(range.seg.rem.only.5.or.more[[b2]])-ceiling(length_section/5)):
+                              (min(range.seg.rem.only.5.or.more[[b2]])-1),
+                            (max(range.seg.rem.only.5.or.more[[b2]])+1):
+                              (max(range.seg.rem.only.5.or.more[[b2]])+ceiling(length_section/5))
+                        )
                 }
             }
         }
@@ -910,9 +1063,11 @@ calcMeansAndSegmentsRemoved <- function(f, Segment, CleanChan.loc, FirstOrSecond
         }
     }
     return(list(deletedSegments=deletedSegments, quantiles=quantiles, storeMeans=storeMeans, typeOfGating=typeOfGating,
-                meanRangePerc=meanRangePerc, timeCentres=timeCentres, densityGateLine=densityGateLine, cellDelete2=cellDelete2.org,
-                choosenChans=choosenChans))
+                meanRangePerc=meanRangePerc, timeCentres=timeCentres, densityGateLine=densityGateLine,
+                cellDelete2=cellDelete2.org, choosenChans=choosenChans))
 }
+
+
 ##################################################
 # Time Function                                  #
 ##################################################
