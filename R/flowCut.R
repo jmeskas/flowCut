@@ -25,7 +25,7 @@ flowCut <- function(f,
                     ){
 
     start0 <- Sys.time()
-    resTable <- matrix("", 15, 1)
+    resTable <- matrix("", 16, 1)
     rownames(resTable) <-
         c("Is it monotonically increasing in time",
         "Largest continuous jump",
@@ -843,13 +843,6 @@ calcMeansAndSegmentsRemoved <- function(
             cellDelete2[m] <- sum(cellDelete1[m, ])
         }
 
-            # print(round( max(maxDistJumped, na.rm = TRUE), digits=3))
-            # print(MaxContin)
-            # print(round(mean(meanRangePerc, na.rm = TRUE), digits=3))
-            # print(MeanOfMeans)
-            # print(round( max(meanRangePerc, na.rm = TRUE), digits=3))
-            # print(MaxOfMeans)
-
         typeOfGating <- NULL
         # Check if the file is nice, before removing anything.
         # If it is, then we can avoid removing slivers.
@@ -866,7 +859,6 @@ calcMeansAndSegmentsRemoved <- function(
                                         which(cellDelete2 > range_7SD[2]))
             typeOfGating <- paste0(typeOfGating, "7SD")
             cellDelete2.org <- cellDelete2
-            print("7SD")
         } else {
             # Finding outliers using by plotting density of the 8 measures,
             #  the index of cells that have 8 measures significantly different
@@ -898,16 +890,10 @@ calcMeansAndSegmentsRemoved <- function(
                         y_ind <- which(density(cellDelete2)$x %in% all_cut[ind])
                         y_ind <- density(cellDelete2)$y[y_ind]
 
-                        print(ml)
-                        print(y_ind)
-                        print(peaks_value)
-
-
                         if (abs(peaks_value[ml+1]-min(y_ind)) <
                             abs(max(peaks_value)-min(y_ind)) * 0.015){
                             sn <- c(sn, ind)
                         }
-                        print(sn)
                     }
                     # Remove the peaks that are too small to
                     #  be counted as a separate population
@@ -943,16 +929,11 @@ calcMeansAndSegmentsRemoved <- function(
                         }
                     }
 
-                    # print(all_cut)
-
                     if (length(which(all_cut_value < MaxValleyHgt*peak_max))==0){
                         all_cut_min <- all_cut[1]
                     } else {
                         all_cut_min <- all_cut[min(which(all_cut_value < MaxValleyHgt*peak_max))]
                     }
-
-                    # print(all_cut_min)
-                    # print(upper_cut)
 
                     if (!is.na(upper_cut) && !is.na(all_cut_min)){
                         if (upper_cut >= all_cut_min){
@@ -963,8 +944,6 @@ calcMeansAndSegmentsRemoved <- function(
                     }
 
                     densityGateLine <- max(upper_cut, all_cut_min, na.rm = TRUE)
-
-                    # print(densityGateLine)
 
                     if( densityGateLine == -Inf){ densityGateLine <- NA } # max returns -Inf if both were NA
                 } else {
