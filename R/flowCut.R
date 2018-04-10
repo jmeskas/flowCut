@@ -233,6 +233,16 @@ flowCut <- function(f,
         }
     }
     names(MonotonicWithTime) <- NULL
+    MonotonicWithTime <- sort(unique(MonotonicWithTime))
+    # print(MonotonicWithTime)
+    # print(match(all.Time.loc,MonotonicWithTime, nomatch=0))
+    # print(all.Time.loc)
+    if ( length(which(match(all.Time.loc, MonotonicWithTime, nomatch=0) >= 1)) >= 1){
+        MonotonicWithTime <- MonotonicWithTime[-match(all.Time.loc, MonotonicWithTime, nomatch=0)]
+    }
+
+    # print(MonotonicWithTime)
+
     if (length(MonotonicWithTime) >= 1 && Verbose == T ){
         message(paste0("Channels ", paste0(MonotonicWithTime, collapse = ", "), " are monotonically increasing in time and have been removed from the analysis."))
     }
@@ -1052,6 +1062,8 @@ calcMeansAndSegmentsRemoved <- function(
         for ( m in 1:length(cellDelete1[ ,1]) ){
             cellDelete2[m] <- sum(cellDelete1[m, ])
         }
+
+        # print(cellDelete2)
 
         typeOfGating <- NULL
         # Check if the file is nice, before removing anything.
