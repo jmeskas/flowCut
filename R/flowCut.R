@@ -182,11 +182,6 @@ flowCut <- function(f,
     # names(Time.loc) <- NULL
     #
 
-    print("Time.loc")
-    print(Time.loc)
-
-    print(f)
-
     if (length(all.Time.loc) >= 2){ # Multiple time channels
         message(paste0("This file has ", length(all.Time.loc),
                        " time channels. flowCut has selected to use ",
@@ -315,8 +310,6 @@ flowCut <- function(f,
 
         # is there a bunch of repeats?
         uniformity_in_time_test_3 <- max(table(f@exprs[,Time.loc]))
-
-        print(uniformity_in_time_test)
 
         if ( uniformity_in_time_test >= 0.2 ){
             message("The time channel does not appear to be distributed like an expected time channel would be.")
