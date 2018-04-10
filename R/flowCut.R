@@ -70,6 +70,7 @@ flowCut <- function(f,
         resTable["Has the file passed", ] <- "Segment must be a number larger than 0."
         return(list(frame=f, ind=NULL, data=resTable, worstChan=NULL))
     }
+
     if (nrow(f) <= 3*Segment){ # deGate requires count.lim = 3
         message(paste0("Either your Segment size is too large or your number",
                 " of cells is too small."))
@@ -169,7 +170,11 @@ flowCut <- function(f,
                 )))
     names( SSC.loc) <- NULL
 
-    Time.loc <- grep("time", tolower(t.name))
+    Time.loc <- sort(unique(c(grep("time",  tolower(t.name)),
+                              grep("time",  tolower(t.desc)),
+                              grep("hdr-t", tolower(t.name))
+                )))
+
     all.Time.loc <- Time.loc
     # if (length(Time.loc) >= 2){
     #   Time.loc <- Time.loc[1] # default to take the first.
@@ -177,6 +182,10 @@ flowCut <- function(f,
     # names(Time.loc) <- NULL
     #
 
+    print("Time.loc")
+    print(Time.loc)
+
+    print(f)
 
     if (length(all.Time.loc) >= 2){ # Multiple time channels
         message(paste0("This file has ", length(all.Time.loc),
@@ -194,16 +203,18 @@ flowCut <- function(f,
     names(Pulse.Width.loc) <- NULL
 
     Extra.loc <-  c(
-        grep( "pulse", tolower(t.name)),
-        grep( "width", tolower(t.name)),
-        grep( "length", tolower(t.name)),
-        grep( "count", tolower(t.name)),
-        grep( "Sort Classifier", tolower(t.name)),
-        grep( "event", tolower(t.name))
+        grep( "pulse",           tolower(t.name)),
+        grep( "width",           tolower(t.name)),
+        grep( "length",          tolower(t.name)),
+        grep( "count",           tolower(t.name)),
+        grep( "sort classifier", tolower(t.name)),
+        grep( "event",           tolower(t.name)),
+        grep( "phenograph",      tolower(t.name)),
+        grep( "barcode",         tolower(t.name))
     )
     names(Extra.loc) <- NULL
     Extra.loc <- unique(Extra.loc)
-    if (length(Extra.loc) >= 1 && Verbose==T ){
+    if (length(Extra.loc) >= 1 && Verbose == T ){
         cat(paste0("Channels ", paste0(Extra.loc, collapse = ", "), " are removed as they are not channels that need to be analyzed.\n"))
     }
 
@@ -214,13 +225,25 @@ flowCut <- function(f,
         }
     }
     names(NoVariation) <- NULL
-    if (length(NoVariation) >= 1 && Verbose==T ){
-        message(paste0("Channels ", paste0(NoVariation, collapse = ", "), " have no variation and have been removed from the analysis.\n"))
+    if (length(NoVariation) >= 1 && Verbose == T ){
+        message(paste0("Channels ", paste0(NoVariation, collapse = ", "), " have no variation and have been removed from the analysis."))
     }
 
-    # print(NoVariation)
-    # print(Time.loc)
-    # print(all.Time.loc)
+
+
+    MonotonicWithTime <- NULL
+    for (MonoChan in 1:length(colnames(f))){
+        if (all(f@exprs[ , NoVar] == cummax(f@exprs[ , NoVar])) == TRUE){
+            MonotonicWithTime <- c(MonotonicWithTime, NoVar)
+        }
+    }
+    names(MonotonicWithTime) <- NULL
+    if (length(MonotonicWithTime) >= 1 && Verbose == T ){
+        message(paste0("Channels ", paste0(MonotonicWithTime, collapse = ", "), " are monotonically increasing in time and have been removed from the analysis."))
+    }
+
+
+
 
     if(length(which(NoVariation == Time.loc)) >= 1){
         message("Your time channel has no variation.")
@@ -228,8 +251,9 @@ flowCut <- function(f,
         colnames(f@exprs)[Time.loc] <- paste0(colnames(f@exprs)[Time.loc], "-Removed")
         Time.loc <- NULL
 
-        # print(length(which(NoVariation != all.Time.loc)))
-        if(length(which(NoVariation != all.Time.loc)) >= 1){
+        # if(length(which(NoVariation != all.Time.loc)) >= 1){
+        if(length(which(is.na(match(all.Time.loc,NoVariation)))) >= 1){ # does something exist in all.Time.loc that isn't in NoVariation
+
             message("The first time channel will be replaced by the second time channel")
             Time.loc <- all.Time.loc[-which(all.Time.loc == NoVariation)][1]
             f@parameters@data$name[Time.loc] <- "Time"
@@ -239,11 +263,6 @@ flowCut <- function(f,
                 paste0(colnames(f@exprs)[all.Time.loc[which(all.Time.loc != Time.loc)]], "-Removed")
         }
     }
-
-    cat("\n")
-    # print(NoVariation)
-    # print(Time.loc)
-    # print(all.Time.loc)
 
     #### Creating a time channel if none is specified #########################
     if (length(Time.loc) == 0){
@@ -257,7 +276,6 @@ flowCut <- function(f,
             f@parameters@data,
             c("Time", "Time", 262144, -111, 262143)
         )
-        # print("DUDE!")
         rownames(f@parameters@data)[length(colnames(f))] <-
             paste0("$P", length(colnames(f)))
         f@description[paste0("P", length(colnames(f)), "DISPLAY")] <- "LIN" # "LOG"
@@ -284,23 +302,22 @@ flowCut <- function(f,
 
     if ( range_of_time != 0){
 
+        # is the mean and midpoint similar?
         uniformity_in_time_test <- abs(mean(f@exprs[,Time.loc]) - (range_of_time/2+min(f@exprs[,Time.loc]))) / range_of_time
 
-        # print(uniformity_in_time_test)
+        # dividing_points <- seq(min(f@exprs[,Time.loc]), max(f@exprs[,Time.loc]), length.out = 11)
+        # uniformity_in_time_test_2 <- sapply (1:10, function(x) {
+        #     length(intersect(
+        #         which(f@exprs[,Time.loc] <= dividing_points[x+1]),
+        #         which(f@exprs[,Time.loc] >= dividing_points[x]))
+        #     )
+        # })
 
-        dividing_points <- seq(min(f@exprs[,Time.loc]), max(f@exprs[,Time.loc]), length.out = 11)
-        uniformity_in_time_test_2 <- sapply (1:10, function(x) {
-            length(intersect(
-                which(f@exprs[,Time.loc] <= dividing_points[x+1]),
-                which(f@exprs[,Time.loc] >= dividing_points[x]))
-            )
-        })
-
-        # uniformity_in_time_test_3 <- length(unique(f@exprs[,Time.loc]))
+        # is there a bunch of repeats?
         uniformity_in_time_test_3 <- max(table(f@exprs[,Time.loc]))
 
+        print(uniformity_in_time_test)
 
-        # print(uniformity_in_time_test)
         if ( uniformity_in_time_test >= 0.2 ){
             message("The time channel does not appear to be distributed like an expected time channel would be.")
             Time_test_passes <- FALSE
@@ -327,15 +344,7 @@ flowCut <- function(f,
     }
 
     # channels to clean
-    CleanChan.loc <- (1:ncol(f))[-c(FSC.loc, SSC.loc, Time.loc, all.Time.loc, Extra.loc, NoVariation)]
-
-    # print(FSC.loc)
-    # print(SSC.loc)
-    # print(all.Time.loc)
-    # print(Time.loc)
-    # print(Extra.loc)
-    # print(NoVariation)
-    # print(CleanChan.loc)
+    CleanChan.loc <- (1:ncol(f))[-c(FSC.loc, SSC.loc, Time.loc, all.Time.loc, Extra.loc, NoVariation, MonotonicWithTime)]
 
     if (length(CleanChan.loc) == 0 ){
         message("No marker channels to run flowCut on.")
@@ -367,7 +376,7 @@ flowCut <- function(f,
     }
 
     #### Remove low density sections ##########################################
-    res.temp <- removeLowDensSections(f, LowDensityRemoval, Verbose=Verbose, Time.loc=Time.loc)
+    res.temp <- removeLowDensSections(f, Segment, LowDensityRemoval, Verbose=Verbose, Time.loc=Time.loc)
     f <- res.temp$frame; removeIndLowDens <- res.temp$rem.ind; remove(res.temp)
     ifelse(length(removeIndLowDens) >= 1 ,
         resTable["Has a low density section been removed", ] <- "T",
@@ -616,7 +625,7 @@ flowCut <- function(f,
         suppressWarnings ( dir.create ( paste0(Directory), recursive = TRUE) )
 
         if ( PrintToConsole == FALSE) {
-            CairoPNG ( filename = paste0(Directory, "/", FileID, "_",
+            CairoPNG ( filename = paste0(Directory, "/", gsub(".fcs","",FileID), "_",
                 FlaggedOrNot, "_", PassedMono, PassedCont, PassedMean,
                 PassedMax, ".png"), width = z1*600, height = z2*600)
             par(mfrow=c(z2,z1), mar=c(7,7,4,2), mgp=c(4,1.5,0), oma=c(0,0,5,0))
@@ -763,7 +772,7 @@ flowCut <- function(f,
 #  or after these low density sections.
 # Because the density functions indices do not match with the flowFrames
 #  indices, density function indices need to convert to flowFrame indices.
-removeLowDensSections <- function(f, LowDensityRemoval=0.1, Verbose=FALSE, Time.loc){
+removeLowDensSections <- function(f, Segment=500, LowDensityRemoval=0.1, Verbose=FALSE, Time.loc){
 
     if(LowDensityRemoval == 0){ # dont want to remove low density on the rerun
         return(list(frame=f, rem.ind=NULL))
@@ -802,14 +811,23 @@ removeLowDensSections <- function(f, LowDensityRemoval=0.1, Verbose=FALSE, Time.
         # change groups of indices to ranges
         range.low.dens <- lapply(1:length(range.low.dens), function(x){
             range(range.low.dens[[x]])
-            })
+        })
         # Add 2.5% each way to the range.
         range.low.dens <- lapply(1:(length(range.low.dens)), function(x){
             range.temp <- range.low.dens[[x]][2]- range.low.dens[[x]][1]
-            c(  max(round(range.low.dens[[x]][1]-0.025*range.temp), 1),
-                min(round(range.low.dens[[x]][2]+0.025*range.temp),
-                length(dens.f$y))
-            )
+
+            # if (range.temp <= 0.25 *(maxTime-minTime)){ # only add buffer if range is less than 25% of the total time range
+            #     new.range <- c( max(round(range.low.dens[[x]][1]-0.025*range.temp), 1),
+            #                     min(round(range.low.dens[[x]][2]+0.025*range.temp),
+            #                         length(dens.f$y))
+            #                  )
+            # } else {
+                new.range <- c( max(round(range.low.dens[[x]][1]), 1),
+                                min(round(range.low.dens[[x]][2]),
+                                    length(dens.f$y))
+                             )
+            # }
+            return(new.range)
         })
 
         # Change density function indices to time coordinates
@@ -842,7 +860,19 @@ removeLowDensSections <- function(f, LowDensityRemoval=0.1, Verbose=FALSE, Time.
             if (Verbose == TRUE){
                 cat("Low density removal removed all events. Probably a spike in the time channel. Therefore, removing no events.\n")
             }
-        } else {
+            removeIndLowDens <- NULL
+        } else if (length(removeIndLowDens) > 0.5*nrow(f)){
+            if (Verbose == TRUE){
+                cat("Low density removal removed more than half of the events. Probably a spike in the marker channels. Therefore, removing no events.\n")
+            }
+            removeIndLowDens <- NULL
+        } else if ( (nrow(f) - length(removeIndLowDens)) < Segment*3 ){
+            if (Verbose == TRUE){
+                cat("Low density removal removed too many events. If we allowed removal of all low density events, then there",
+                    "would be less than Segment*3 events and then many errors would occur in flowCut. Therefore, we are not removing any.\n")
+            }
+            removeIndLowDens <- NULL
+        }  else {
             temp.text <- range.low.dens # Create temp.text for printing to console purposes
 
             # Check if the ranges of time coordinates exceed the maxTime and minTime, if so, update the end points
@@ -971,7 +1001,6 @@ calcMeansAndSegmentsRemoved <- function(
         meanRangePerc[j] <-
             (max(storeMeans[[j]]) - min(storeMeans[[j]])) /
             (quantiles[[j]]["98%"]-quantiles[[j]]["2%"])
-
 
         if (FirstOrSecond == "First"){
             segSummary <- rbind(sapply(1:ncol(segSummary), function(x) {
@@ -1190,9 +1219,6 @@ calcMeansAndSegmentsRemoved <- function(
                     rght.pop <- storeMeans[[j1]][range.seg.keep[[b2+1]]]
                     rght.pop <- rev(rght.pop)
 
-                    # print(left.pop)
-                    # print(rght.pop)
-
                     main.pop <- storeMeans[[j1]][range.seg.rem.only.5.or.more[[b2]]]
 
                     for ( side.pop in list(left.pop, rght.pop)){
@@ -1203,22 +1229,8 @@ calcMeansAndSegmentsRemoved <- function(
                                 side.pop <- -(side.pop-mean(main.pop))+mean(main.pop)
                             }
 
-                            # print(b2)
-                            # print(main.pop)
-                            # print(side.pop)
-                            # cat("\n")
-                            # print(length(side.pop))
-                            # print(range(side.pop))
-                            # print(mean(side.pop))
-                            # print(sd(side.pop))
-
-
                             for (k1 in 1:length(side.pop)){
-                                # print(tail(side.pop, n=1))
-                                # print(mean(side.pop) + sd(side.pop))
-                                # cat(paste0(k1, " "))
                                 if (length(side.pop) <= 2 || sd(side.pop) == 0 || (max(side.pop)-min(side.pop) == 0) ){
-                                    # print("breaking")
                                     break;
                                 }
                                 if ( tail(side.pop, n=1) >= (mean(side.pop) + sd(side.pop)) ){
@@ -1236,7 +1248,6 @@ calcMeansAndSegmentsRemoved <- function(
                         }
                     }
                 }
-                # print(adding.Segments)
                 adding.Segments <-
                     c(adding.Segments,
                         (min(range.seg.rem.only.5.or.more[[b2]])-ceiling(length_section/5)):
@@ -1244,7 +1255,6 @@ calcMeansAndSegmentsRemoved <- function(
                         (max(range.seg.rem.only.5.or.more[[b2]])+1):
                           (max(range.seg.rem.only.5.or.more[[b2]])+ceiling(length_section/5))
                     )
-                # print(adding.Segments)
             }
         }
         if (length(adding.Segments) >= 1){
