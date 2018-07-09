@@ -194,9 +194,6 @@ flowCut <- function(f,
             paste0(colnames(f@exprs)[all.Time.loc[which(all.Time.loc != Time.loc)]], "-Removed")
     }
 
-    Pulse.Width.loc <-  grep( "time", tolower(t.name))
-    names(Pulse.Width.loc) <- NULL
-
     Extra.loc <-  c(
         grep( "pulse",           tolower(t.name)),
         grep( "width",           tolower(t.name)),
@@ -234,14 +231,10 @@ flowCut <- function(f,
     }
     names(MonotonicWithTime) <- NULL
     MonotonicWithTime <- sort(unique(MonotonicWithTime))
-    # print(MonotonicWithTime)
-    # print(match(all.Time.loc,MonotonicWithTime, nomatch=0))
-    # print(all.Time.loc)
+
     if ( length(which(match(all.Time.loc, MonotonicWithTime, nomatch=0) >= 1)) >= 1){
         MonotonicWithTime <- MonotonicWithTime[-match(all.Time.loc, MonotonicWithTime, nomatch=0)]
     }
-
-    # print(MonotonicWithTime)
 
     if (length(MonotonicWithTime) >= 1 && Verbose == T ){
         message(paste0("Channels ", paste0(MonotonicWithTime, collapse = ", "), " are monotonically increasing in time and have been removed from the analysis."))
@@ -310,6 +303,8 @@ flowCut <- function(f,
         # is the mean and midpoint similar?
         uniformity_in_time_test <- abs(mean(f@exprs[,Time.loc]) - (range_of_time/2+min(f@exprs[,Time.loc]))) / range_of_time
 
+        # print(uniformity_in_time_test)
+
         # dividing_points <- seq(min(f@exprs[,Time.loc]), max(f@exprs[,Time.loc]), length.out = 11)
         # uniformity_in_time_test_2 <- sapply (1:10, function(x) {
         #     length(intersect(
@@ -321,7 +316,8 @@ flowCut <- function(f,
         # is there a bunch of repeats?
         uniformity_in_time_test_3 <- max(table(f@exprs[,Time.loc]))
 
-        if ( uniformity_in_time_test >= 0.2 ){
+        # This number needs to be set better. Used to be 0.2, moved to 0.22 to work with a particular project.
+        if ( uniformity_in_time_test >= 0.22 ){
             message("The time channel does not appear to be distributed like an expected time channel would be.")
             Time_test_passes <- FALSE
         }
@@ -630,7 +626,7 @@ flowCut <- function(f,
         if ( PrintToConsole == FALSE) {
             CairoPNG ( filename = paste0(Directory, "/", gsub(".fcs","",FileID), "_",
                 FlaggedOrNot, "_", PassedMono, PassedCont, PassedMean,
-                PassedMax, ".png"), width = z1*600, height = z2*600)
+                PassedMax, ".png"), width = (z1)*600, height = z2*600)
             par(mfrow=c(z2,z1), mar=c(7,7,4,2), mgp=c(4,1.5,0), oma=c(0,0,5,0))
             cex.size <- 3
         } else {
@@ -675,6 +671,7 @@ flowCut <- function(f,
             cex.axis=cex.size,
             main=paste0("Worst Channel without indices removed")
         )
+
         temp <- density(cellDelete2, adjust = 1)
         graphics::plot(temp, cex.main=cex.size, cex.lab=cex.size,
             cex.axis=cex.size, main='Density of summed measures')
@@ -1011,6 +1008,11 @@ calcMeansAndSegmentsRemoved <- function(
             } ))
             segSummary <- replace(segSummary, is.nan(segSummary), 0)
             cellDeleteExpo <- abs(segSummary)
+
+            if (j==1){
+                return(cellDeleteExpo)
+            }
+
             # Sum up each row of the resulting matrix
             cellDeleteExpo <- sapply(1:nrow(cellDeleteExpo), function(x) {
                 sum(cellDeleteExpo[x, ])
@@ -1058,12 +1060,11 @@ calcMeansAndSegmentsRemoved <- function(
         }
 
         cellDelete1 <- do.call(cbind, cellDelete)
+
         cellDelete2 <- NULL
         for ( m in 1:length(cellDelete1[ ,1]) ){
             cellDelete2[m] <- sum(cellDelete1[m, ])
         }
-
-        # print(cellDelete2)
 
         typeOfGating <- NULL
         # Check if the file is nice, before removing anything.
