@@ -10,9 +10,9 @@ output:
 ---
 
 
-# Licence
+# License
 
-There is an **academic use only licence** associated to _**flowCut**_. _**flowCut**_ may only be used for internal, non-commercially (e.g., industry) funded, non-commercial use for non-profit research or educational purposes. Please see the LICENSE file for more information.
+There is an **academic use only license** associated to _**flowCut**_. _**flowCut**_ may only be used for internal, non-commercially (e.g., industry) funded, non-commercial use for non-profit research or educational purposes. Please see the LICENSE file for more information.
 
 BCCA (BC Cancer Agency Branch) is willing to license the Product to _You_ only if _You_ accept the terms and conditions of this Agreement.  By clicking on the “I ACCEPT” button, or by copying, **downloading**, accessing or otherwise using the Product, **You automatically agree to be bound by the terms of this Agreement**.  If _You_ do not wish to be bound by the terms of this Agreement, do not copy, download, access or otherwise use the Product.
 
