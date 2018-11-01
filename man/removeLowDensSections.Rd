@@ -10,7 +10,7 @@
 }
 
 \usage{
-    removeLowDensSections (f, LowDensityRemoval=0.1, Verbose=FALSE)
+    removeLowDensSections (f, Segment=500, LowDensityRemoval=0.1, Verbose=FALSE, Time.loc)
 }
 \arguments{
     \item{f}{
@@ -39,7 +39,7 @@
 
 \examples{
 data(flowCutData)
-res_lowDens <- removeLowDensSections(flowCutData[[1]], LowDensityRemoval=0.1)
+res_lowDens <- removeLowDensSections(flowCutData[[1]], LowDensityRemoval=0.1, Time.loc=which(flowCutData[[1]]@parameters@data$name == "Time"))
 library(flowDensity)
 plotDens(flowCutData[[1]], c("Time","FL1-H"))
 points(exprs(flowCutData[[1]])[res_lowDens$rem.ind, c("Time","FL1-H")],
