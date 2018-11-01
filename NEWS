@@ -3,3 +3,5 @@
 0.99.2: Review fixes.
 0.99.6: Added many crashes to avoid crashes.
 0.99.7: Added vignette files.
+0.99.8: Added "Was the file run twice" in data table. Edited data file to be consistent with fixes from other versions. Manual pages updated.
+
