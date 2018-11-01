@@ -21,9 +21,15 @@ res_flowCut <- flowCut(flowCutData[[1]], Plot="All")
 res_flowCut <- flowCut(flowCutData[[2]], MaxValleyHgt = 0.01, Verbose = TRUE, Plot="All")
 res_flowCut$data
 
+# Compare with:
+res_flowCut <- flowCut(flowCutData[[2]], Verbose = TRUE, Plot="All")
+
 # Here is an example with decreasing the MaxPercCut parameter, which causes a flag.
 res_flowCut <- flowCut(flowCutData[[3]], MaxPercCut = 0.15, Verbose = TRUE)
 res_flowCut$data
+
+# Compare with:
+res_flowCut <- flowCut(flowCutData[[3]], Verbose = TRUE, Plot="All")
 
 # Here is an example using AllowFlaggedRerun and UseOnlyWorstChannels
 res_flowCut <- flowCut(flowCutData[[4]], AllowFlaggedRerun = TRUE,
