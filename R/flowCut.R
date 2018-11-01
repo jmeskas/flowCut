@@ -25,7 +25,7 @@ flowCut <- function(f,
                     ){
 
     start0 <- Sys.time()
-    resTable <- matrix("", 16, 1)
+    resTable <- matrix("", 17, 1)
     rownames(resTable) <-
         c("Is it monotonically increasing in time",
         "Largest continuous jump",
@@ -42,9 +42,10 @@ flowCut <- function(f,
         "% of events removed",
         "FileID",
         "Type of Gating",
+        "Was the file run twice",
         "Has the file passed"
         )
-
+    resTable["Was the file run twice",] <- "No"
     # Creating a directory if none is specified
     if (is.null(Directory)){ Directory <- paste0(getwd(), "/flowCut") }
     # Creating a FileID if none is specified
@@ -313,9 +314,6 @@ flowCut <- function(f,
         #     )
         # })
 
-        # is there a bunch of repeats?
-        uniformity_in_time_test_3 <- max(table(f@exprs[,Time.loc]))
-
         # This number needs to be set better. Used to be 0.2, moved to 0.22 to work with a particular project.
         if ( uniformity_in_time_test >= 0.22 ){
             message("The time channel does not appear to be distributed like an expected time channel would be.")
@@ -326,6 +324,11 @@ flowCut <- function(f,
             # message("The 2 time channel does not appear to be distributed like an expected time channel would be.")
             # Time_test_passes <- FALSE
         # }
+
+        # is there a bunch of repeats?
+        uniformity_in_time_test_3 <- max(table(f@exprs[,Time.loc]))
+
+        # print(uniformity_in_time_test_3)
 
         if ( uniformity_in_time_test_3 >= 0.05*nrow(f) ){
             message("There appears to be an overwhelming amount of repeated time values.")
@@ -612,6 +615,9 @@ flowCut <- function(f,
     if (resTable["Has the file passed", ]                    == "T"){
         FlaggedOrNot <- "Passed"} else { FlaggedOrNot <- "Flagged" }
 
+    # the pngName will be passed through the variable "AllowFlaggedRerun" for the second run to make the second figure had a suffix.
+    pngName <- paste0(Directory, "/", gsub(".fcs","",FileID), "_", FlaggedOrNot, "_", PassedMono, PassedCont, PassedMean, PassedMax, ".png")
+
     if(Plot == "All" || (Plot == "Flagged Only" && FlaggedOrNot == "Flagged")){
         # z1 and z2 are the dimensions of the figure
         z1 <- ceiling(sqrt(length(CleanChan.loc)+2))
@@ -623,10 +629,12 @@ flowCut <- function(f,
 
         suppressWarnings ( dir.create ( paste0(Directory), recursive = TRUE) )
 
+        if ( AllowFlaggedRerun != T && AllowFlaggedRerun != F && file.exists(AllowFlaggedRerun) ){
+            pngName <- gsub(".png", "_2nd_run.png", pngName)
+        }
+
         if ( PrintToConsole == FALSE) {
-            CairoPNG ( filename = paste0(Directory, "/", gsub(".fcs","",FileID), "_",
-                FlaggedOrNot, "_", PassedMono, PassedCont, PassedMean,
-                PassedMax, ".png"), width = (z1)*600, height = z2*600)
+            CairoPNG ( filename = pngName, width = (z1)*600, height = z2*600)
             par(mfrow=c(z2,z1), mar=c(7,7,4,2), mgp=c(4,1.5,0), oma=c(0,0,5,0))
             cex.size <- 3
         } else {
@@ -720,7 +728,7 @@ flowCut <- function(f,
             AmountMeanSDKeep=AmountMeanSDKeep,
             AmountMeanRangeKeep=AmountMeanRangeKeep,
             PrintToConsole=PrintToConsole,
-            AllowFlaggedRerun=FALSE,
+            AllowFlaggedRerun=pngName,
             Verbose=Verbose
         )
 
@@ -755,6 +763,7 @@ flowCut <- function(f,
         resTableOfResTable["% of events removed", ] <-
             as.character( round((nrow(f)*as.numeric(res_flowCut$data["% of events removed", ])
                 + nrow(f.org)*as.numeric(resTable["% of events removed", ]))/ nrow(f.org), digits=4) )
+        resTableOfResTable["Was the file run twice",] <- "Yes"
         return(list(frame=res_flowCut$frame, ind=indOfInd, data=resTableOfResTable, worstChan=res_flowCut$worstChan))
     }
     return(list(frame=f, ind=to.be.removed, data=resTable, worstChan=worstChan))
@@ -777,7 +786,6 @@ removeLowDensSections <- function(f, Segment=500, LowDensityRemoval=0.1, Verbose
     if(LowDensityRemoval == 0){ # dont want to remove low density on the rerun
         return(list(frame=f, rem.ind=NULL))
     }
-
 
     # Time.loc <- which(tolower(f@parameters@data$name) == "time")
     # names(Time.loc) <- NULL
