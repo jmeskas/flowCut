@@ -1017,9 +1017,9 @@ calcMeansAndSegmentsRemoved <- function(
             segSummary <- replace(segSummary, is.nan(segSummary), 0)
             cellDeleteExpo <- abs(segSummary)
 
-            if (j==1){
-                return(cellDeleteExpo)
-            }
+            # if (j==1){
+            #     return(cellDeleteExpo)
+            # }
 
             # Sum up each row of the resulting matrix
             cellDeleteExpo <- sapply(1:nrow(cellDeleteExpo), function(x) {
