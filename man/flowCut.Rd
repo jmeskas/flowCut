@@ -15,7 +15,7 @@ flowCut (f, Segment=500, Channels=NULL, Directory=NULL, FileID=NULL, Plot="Flagg
         MaxContin=0.1, MeanOfMeans=0.13, MaxOfMeans=0.15, MaxValleyHgt=0.1,
         MaxPercCut=0.3, LowDensityRemoval=0.1, GateLineForce=NULL,
         UseOnlyWorstChannels=FALSE, AmountMeanRangeKeep=1, AmountMeanSDKeep=2,
-        PrintToConsole=FALSE, AllowFlaggedRerun=FALSE, Verbose=FALSE)
+        PrintToConsole=FALSE, AllowFlaggedRerun=FALSE, UseCairo=TRUE, Verbose=FALSE)
 }
 \arguments{
     \item{f}{
@@ -71,6 +71,9 @@ flowCut (f, Segment=500, Channels=NULL, Directory=NULL, FileID=NULL, Plot="Flagg
     }
     \item{AllowFlaggedRerun}{
         A logical value that dictates if flowCut will run a second time. However, this only occurs if the file was flagged on the first run. The default is FALSE.
+    }
+    \item{UseCairo}{
+        A logical value that dictates if the Cairo package should be used to save the png file. If FALSE, png() in grDevices will be used. Note that some operating system might only work with one or the other.
     }
     \item{Verbose}{
         A logical value that dictates if computational information is printed while the code is running. The default is FALSE.

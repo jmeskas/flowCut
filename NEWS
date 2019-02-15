@@ -6,4 +6,5 @@
 0.99.8: Added "Was the file run twice" in data table. Edited data file to be consistent with fixes from other versions. Manual pages updated.
 0.99.9: Fixed a bug that occured if the first channel being cleaned was the first one. This only happens if there is not FSC or SSC channels.
 0.99.10: Fixed bug where time tests fails on second run of flowCut
+0.99.11: Added UseCairo parameter since docker requires no Cairo when creating the pngs.
 

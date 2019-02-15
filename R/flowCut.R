@@ -21,6 +21,7 @@ flowCut <- function(f,
                     AmountMeanSDKeep=2,
                     PrintToConsole=FALSE,
                     AllowFlaggedRerun = FALSE,
+                    UseCairo=TRUE,
                     Verbose=FALSE
                     ){
 
@@ -634,7 +635,11 @@ flowCut <- function(f,
         }
 
         if ( PrintToConsole == FALSE) {
-            CairoPNG ( filename = pngName, width = (z1)*600, height = z2*600)
+            if ( UseCairo == TRUE){
+                CairoPNG ( filename = pngName, width = (z1)*600, height = z2*600)
+            } else {
+                png ( filename=pngName, width = (z1)*600, height = z2*600)
+            }
             par(mfrow=c(z2,z1), mar=c(7,7,4,2), mgp=c(4,1.5,0), oma=c(0,0,5,0))
             cex.size <- 3
         } else {
