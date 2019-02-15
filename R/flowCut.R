@@ -731,6 +731,10 @@ flowCut <- function(f,
             AllowFlaggedRerun=pngName,
             Verbose=Verbose
         )
+        if(res_flowCut$data["Has the file passed", ] == "Time test(s) failed."){
+            message("Time test(s) failed on the second run. Returning results from the first run for flowCut.")
+            return(list(frame=f, ind=to.be.removed, data=resTable, worstChan=worstChan))
+        }
 
         indOfInd <- setdiff(1:nrow(f.org), to.be.removed)
         indOfInd <- sort(c(indOfInd[res_flowCut$ind], to.be.removed))
