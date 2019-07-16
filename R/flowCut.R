@@ -20,8 +20,9 @@ flowCut <- function(f,
                     AmountMeanRangeKeep=1,
                     AmountMeanSDKeep=2,
                     PrintToConsole=FALSE,
-                    AllowFlaggedRerun = FALSE,
+                    AllowFlaggedRerun=FALSE,
                     UseCairo=TRUE,
+                    UnifTimeCheck=0.22,
                     Verbose=FALSE
                     ){
 
@@ -316,7 +317,7 @@ flowCut <- function(f,
         # })
 
         # This number needs to be set better. Used to be 0.2, moved to 0.22 to work with a particular project.
-        if ( uniformity_in_time_test >= 0.22 ){
+        if ( uniformity_in_time_test >= UnifTimeCheck ){
             message("The time channel does not appear to be distributed like an expected time channel would be.")
             Time_test_passes <- FALSE
         }
