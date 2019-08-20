@@ -15,7 +15,8 @@ flowCut (f, Segment=500, Channels=NULL, Directory=NULL, FileID=NULL, Plot="Flagg
         MaxContin=0.1, MeanOfMeans=0.13, MaxOfMeans=0.15, MaxValleyHgt=0.1,
         MaxPercCut=0.3, LowDensityRemoval=0.1, GateLineForce=NULL,
         UseOnlyWorstChannels=FALSE, AmountMeanRangeKeep=1, AmountMeanSDKeep=2,
-        PrintToConsole=FALSE, AllowFlaggedRerun=FALSE, UseCairo=TRUE, Verbose=FALSE)
+        PrintToConsole=FALSE, AllowFlaggedRerun=FALSE, UseCairo=FALSE,
+        UnifTimeCheck=0.22, Verbose=FALSE)
 }
 \arguments{
     \item{f}{
@@ -73,7 +74,7 @@ flowCut (f, Segment=500, Channels=NULL, Directory=NULL, FileID=NULL, Plot="Flagg
         A logical value that dictates if flowCut will run a second time. However, this only occurs if the file was flagged on the first run. The default is FALSE.
     }
     \item{UseCairo}{
-        A logical value that dictates if the Cairo package should be used to save the png file. If FALSE, png() in grDevices will be used. Note that some operating system might only work with one or the other.
+        A logical value that dictates if the Cairo package should be used to save the png file. If FALSE, png() in grDevices will be used. Note that some operating systems might only work with one or the other. Default is FALSE.
     }
     \item{UnifTimeCheck}{
         A numeric value for the cutoff point when flowCut decides to run or not run its code. Having too high of a value will increase the chances that flowCut crashes. This issue occurs when the time channel is not uniform. A simple test is done: If the mean of the time marker is larger than UnifTimeCheck away from the mid-point then the file is not run. Default is set at 0.22. This is a proportion of the range, and hence must be between 0 and 0.5.
@@ -92,7 +93,7 @@ flowCut (f, Segment=500, Channels=NULL, Directory=NULL, FileID=NULL, Plot="Flagg
 }
 
 \author{
-    \strong{Maintainer}: Justin Meskas \email{jmeskas@bccrc.ca}, Sherrie Wang \email{swang@bccrc.ca}
+    \strong{Maintainer}: Justin Meskas \email{justinmeskas@gmail.com}, Sherrie Wang \email{swang@bccrc.ca}
 }
 
 

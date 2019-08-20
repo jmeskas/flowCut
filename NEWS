@@ -8,4 +8,5 @@
 0.99.10: Fixed bug where time tests fails on second run of flowCut
 0.99.11: Added UseCairo parameter since docker requires no Cairo when creating the pngs.
 0.99.12: Added UnifTimeCheck parameter to allow the user to adjust the value.
+0.99.13: Changed default UseCairo to F. Added UseCairo and UnifTimeCheck parameter to second run code. Changed email.
 

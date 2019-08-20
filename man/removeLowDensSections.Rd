@@ -33,7 +33,7 @@
 }
 
 \author{
-    \strong{Maintainer}: Justin Meskas \email{jmeskas@bccrc.ca}, Sherrie Wang \email{swang@bccrc.ca}
+    \strong{Maintainer}: Justin Meskas \email{justinmeskas@gmail.com}, Sherrie Wang \email{swang@bccrc.ca}
 }
 
 

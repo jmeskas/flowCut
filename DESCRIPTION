@@ -2,10 +2,10 @@ Package: flowCut
 Type: Package
 Title: Precise and Accurate Automated Removal of Outlier Events and Flagging 
     of Files Based on Time Versus Fluorescence Analysis
-Version: 0.99.12
+Version: 0.99.13
 Date: 2019-02-15
 Author: Justin Meskas, Sherrie Wang
-Maintainer: Justin Meskas <jmeskas@bccrc.ca>
+Maintainer: Justin Meskas <justinmeskas@gmail.com>
 Depends: R (>= 3.4), flowCore
 Imports: flowDensity (>= 1.13.1), Cairo, e1071, grDevices, graphics, stats
 Description: Removing segments that show statistical differences from other 

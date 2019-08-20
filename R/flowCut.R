@@ -21,7 +21,7 @@ flowCut <- function(f,
                     AmountMeanSDKeep=2,
                     PrintToConsole=FALSE,
                     AllowFlaggedRerun=FALSE,
-                    UseCairo=TRUE,
+                    UseCairo=FALSE,
                     UnifTimeCheck=0.22,
                     Verbose=FALSE
                     ){
@@ -617,7 +617,7 @@ flowCut <- function(f,
     if (resTable["Has the file passed", ]                    == "T"){
         FlaggedOrNot <- "Passed"} else { FlaggedOrNot <- "Flagged" }
 
-    # the pngName will be passed through the variable "AllowFlaggedRerun" for the second run to make the second figure had a suffix.
+    # the pngName will be passed through the variable "AllowFlaggedRerun" for the second run to make the second figure have a suffix.
     pngName <- paste0(Directory, "/", gsub(".fcs","",FileID), "_", FlaggedOrNot, "_", PassedMono, PassedCont, PassedMean, PassedMax, ".png")
 
     if(Plot == "All" || (Plot == "Flagged Only" && FlaggedOrNot == "Flagged")){
@@ -630,7 +630,6 @@ flowCut <- function(f,
         }
 
         suppressWarnings ( dir.create ( paste0(Directory), recursive = TRUE) )
-
         if ( AllowFlaggedRerun != T && AllowFlaggedRerun != F && file.exists(AllowFlaggedRerun) ){
             pngName <- gsub(".png", "_2nd_run.png", pngName)
         }
@@ -713,7 +712,7 @@ flowCut <- function(f,
     if (Verbose == TRUE){
         cat("Cleaning completed in: ", TimePrint(start0), "\n", sep="")
     }
-
+	
     if (AllowFlaggedRerun == TRUE && resTable["Has the file passed", ] == "F"){
         if (Verbose == TRUE){ cat("Running flowCut a second time.\n")}
         res_flowCut <- flowCut(
@@ -735,6 +734,8 @@ flowCut <- function(f,
             AmountMeanRangeKeep=AmountMeanRangeKeep,
             PrintToConsole=PrintToConsole,
             AllowFlaggedRerun=pngName,
+            UseCairo=UseCairo,
+            UnifTimeCheck=UnifTimeCheck,
             Verbose=Verbose
         )
         if(res_flowCut$data["Has the file passed", ] == "Time test(s) failed."){
@@ -746,21 +747,21 @@ flowCut <- function(f,
         indOfInd <- sort(c(indOfInd[res_flowCut$ind], to.be.removed))
 
         resTableOfResTable <- res_flowCut$data
-        if ( as.numeric(res_flowCut$data["Largest continuous jump", ])
-            <  as.numeric(resTable["Largest continuous jump", ])){
-            resTableOfResTable["Largest continuous jump", ] <-
-                resTable["Largest continuous jump", ]
-        }
-        if ( as.numeric(res_flowCut$data["Mean of % of range of means divided by range of data", ])
-                <  as.numeric(resTable["Mean of % of range of means divided by range of data", ])){
-            resTableOfResTable["Mean of % of range of means divided by range of data", ] <-
-                resTable["Mean of % of range of means divided by range of data", ]
-        }
-        if ( as.numeric(res_flowCut$data["Max of % of range of means divided by range of data", ])
-                <  as.numeric(resTable["Max of % of range of means divided by range of data", ])){
-            resTableOfResTable["Max of % of range of means divided by range of data", ] <-
-                resTable["Max of % of range of means divided by range of data", ]
-        }
+#        if ( as.numeric(res_flowCut$data["Largest continuous jump", ])
+#            <  as.numeric(resTable["Largest continuous jump", ])){
+#            resTableOfResTable["Largest continuous jump", ] <-
+#                resTable["Largest continuous jump", ]
+#        }
+#        if ( as.numeric(res_flowCut$data["Mean of % of range of means divided by range of data", ])
+#                <  as.numeric(resTable["Mean of % of range of means divided by range of data", ])){
+#            resTableOfResTable["Mean of % of range of means divided by range of data", ] <-
+#                resTable["Mean of % of range of means divided by range of data", ]
+#        }
+#        if ( as.numeric(res_flowCut$data["Max of % of range of means divided by range of data", ])
+#                <  as.numeric(resTable["Max of % of range of means divided by range of data", ])){
+#            resTableOfResTable["Max of % of range of means divided by range of data", ] <-
+#                resTable["Max of % of range of means divided by range of data", ]
+#        }
         resTableOfResTable["% of low density removed", ] <-
             as.character( round((nrow(f)*as.numeric(res_flowCut$data["% of low density removed", ])
                 + nrow(f.org)*as.numeric(resTable["% of low density removed", ]))/ nrow(f.org), digits=4) )
