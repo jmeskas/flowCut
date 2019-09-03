@@ -23,6 +23,8 @@ flowCut <- function(f,
                     AllowFlaggedRerun=FALSE,
                     UseCairo=FALSE,
                     UnifTimeCheck=0.22,
+                    RemoveMultiSD=7,
+		    AlwaysClean=FALSE,
                     Verbose=FALSE
                     ){
 
@@ -148,8 +150,33 @@ flowCut <- function(f,
         return(list(frame=f, ind=NULL, data=resTable, worstChan=NULL))
     }
     if (!is.logical(PrintToConsole)){
-        message("PrintToConsole must be a logical (boolean).)")
-        resTable["Has the file passed", ] <- "PrintToConsole must be a logical (boolean).)"
+        message("PrintToConsole must be a logical (boolean).")
+        resTable["Has the file passed", ] <- "PrintToConsole must be a logical (boolean)."
+        return(list(frame=f, ind=NULL, data=resTable, worstChan=NULL))
+    }
+    if (!is.logical(AllowFlaggedRerun) && !is.character(Directory)){
+        message("AllowFlaggedRerun must be a logical (boolean).")
+        resTable["Has the file passed", ] <- "AllowFlaggedRerun must be a logical (boolean)."
+        return(list(frame=f, ind=NULL, data=resTable, worstChan=NULL))
+    }
+    if (!is.logical(UseCairo)){
+        message("UseCairo must be a logical (boolean).")
+        resTable["Has the file passed", ] <- "UseCairo must be a logical (boolean)."
+        return(list(frame=f, ind=NULL, data=resTable, worstChan=NULL))
+    }
+    if (!is.null(UnifTimeCheck) && !is.numeric(UnifTimeCheck) ){
+        message("UnifTimeCheck must be numeric.")
+        resTable["Has the file passed", ] <- "UnifTimeCheck must be numeric."
+        return(list(frame=f, ind=NULL, data=resTable, worstChan=NULL))
+    }
+    if (!is.null(RemoveMultiSD) && !is.numeric(RemoveMultiSD) ){
+        message("RemoveMultiSD must be numeric.")
+        resTable["Has the file passed", ] <- "RemoveMultiSD must be numeric."
+        return(list(frame=f, ind=NULL, data=resTable, worstChan=NULL))
+    }
+    if (!is.logical(AlwaysClean)){
+        message("AlwaysClean must be a logical (boolean).)")
+        resTable["Has the file passed", ] <- "AlwaysClean must be a logical (boolean).)"
         return(list(frame=f, ind=NULL, data=resTable, worstChan=NULL))
     }
     if (!is.logical(Verbose)){
@@ -404,6 +431,8 @@ flowCut <- function(f,
         UseOnlyWorstChannels=UseOnlyWorstChannels,
         AmountMeanRangeKeep=AmountMeanRangeKeep,
         AmountMeanSDKeep=AmountMeanSDKeep,
+        RemoveMultiSD=RemoveMultiSD,
+	AlwaysClean=AlwaysClean,
         Verbose=Verbose,
         Time.loc=Time.loc
     )
@@ -487,6 +516,8 @@ flowCut <- function(f,
         UseOnlyWorstChannels=UseOnlyWorstChannels,
         AmountMeanRangeKeep=AmountMeanRangeKeep,
         AmountMeanSDKeep=AmountMeanSDKeep,
+        RemoveMultiSD=RemoveMultiSD,
+	AlwaysClean=AlwaysClean,
         Verbose=Verbose,
         Time.loc=Time.loc
     )
@@ -736,6 +767,8 @@ flowCut <- function(f,
             AllowFlaggedRerun=pngName,
             UseCairo=UseCairo,
             UnifTimeCheck=UnifTimeCheck,
+            RemoveMultiSD=RemoveMultiSD,
+	    AlwaysClean=AlwaysClean,
             Verbose=Verbose
         )
         if(res_flowCut$data["Has the file passed", ] == "Time test(s) failed."){
@@ -956,6 +989,8 @@ calcMeansAndSegmentsRemoved <- function(
     UseOnlyWorstChannels,
     AmountMeanRangeKeep,
     AmountMeanSDKeep,
+    RemoveMultiSD,
+    AlwaysClean,
     Verbose,
     Time.loc
     ){
@@ -1091,15 +1126,16 @@ calcMeansAndSegmentsRemoved <- function(
         if ((round( max(maxDistJumped, na.rm=TRUE), digits=3) < MaxContin  )&&
             (round(mean(meanRangePerc, na.rm=TRUE), digits=3) < MeanOfMeans)&&
             (round( max(meanRangePerc, na.rm=TRUE), digits=3) < MaxOfMeans )&&
-            is.null(GateLineForce)){
+            is.null(GateLineForce) &&
+	    AlwaysClean == FALSE){
             densityGateLine <- NULL
 
-            range_7SD <-  c(mean(cellDelete2)-7*sd(cellDelete2),
-                            mean(cellDelete2)+7*sd(cellDelete2))
+            range_7SD <- c(mean(cellDelete2)-RemoveMultiSD*sd(cellDelete2),
+                           mean(cellDelete2)+RemoveMultiSD*sd(cellDelete2))
             densityGateLine <- range_7SD[2]
             deletedSegments <-    union(which(cellDelete2 < range_7SD[1]),
                                         which(cellDelete2 > range_7SD[2]))
-            typeOfGating <- paste0(typeOfGating, "7SD")
+            typeOfGating <- paste0(typeOfGating, paste0(RemoveMultiSD, "SD"))
             cellDelete2.org <- cellDelete2
         } else {
             # Finding outliers using by plotting density of the 8 measures,

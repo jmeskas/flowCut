@@ -16,7 +16,7 @@ flowCut (f, Segment=500, Channels=NULL, Directory=NULL, FileID=NULL, Plot="Flagg
         MaxPercCut=0.3, LowDensityRemoval=0.1, GateLineForce=NULL,
         UseOnlyWorstChannels=FALSE, AmountMeanRangeKeep=1, AmountMeanSDKeep=2,
         PrintToConsole=FALSE, AllowFlaggedRerun=FALSE, UseCairo=FALSE,
-        UnifTimeCheck=0.22, Verbose=FALSE)
+        UnifTimeCheck=0.22, AlwaysClean=FALSE, Verbose=FALSE)
 }
 \arguments{
     \item{f}{
@@ -78,6 +78,12 @@ flowCut (f, Segment=500, Channels=NULL, Directory=NULL, FileID=NULL, Plot="Flagg
     }
     \item{UnifTimeCheck}{
         A numeric value for the cutoff point when flowCut decides to run or not run its code. Having too high of a value will increase the chances that flowCut crashes. This issue occurs when the time channel is not uniform. A simple test is done: If the mean of the time marker is larger than UnifTimeCheck away from the mid-point then the file is not run. Default is set at 0.22. This is a proportion of the range, and hence must be between 0 and 0.5.
+    }
+    \item{RemoveMultiSD}{
+	A numeric value used to remove very statistically different segments even when the file is nice. It is the amount of standard deviations away from the mean of all segments of which anything larger will be removed. Default is 7, not advised to reduce this below 3.
+    }
+    \item{AlwaysClean}{
+	A logical value to clean the file (or not) with the multi standard deviation removal method (See RemoveMultiSD). If it passes all the tests (MeanOfMeans, MaxOfMeans and MaxContin) it is deemed clean enough and will skip further cleaning if AlwaysClean = FALSE. Otherwise, AlwaysClean = TRUE, the code will attempt to clean the file with the requirement of being flagged by one of the tests (MeanOfMeans, MaxOfMeans and MaxContin).
     }
     \item{Verbose}{
         A logical value that dictates if computational information is printed while the code is running. The default is FALSE.
