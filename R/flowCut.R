@@ -253,10 +253,11 @@ flowCut <- function(f,
 
 
 
+    # only for the cases that have channels that are monotonically increasing in themselves. It has nothing to do with monotonically increasing in the time dimension.
     MonotonicWithTime <- NULL
     for (MonoChan in 1:length(colnames(f))){
-        if (all(f@exprs[ , NoVar] == cummax(f@exprs[ , NoVar])) == TRUE){
-            MonotonicWithTime <- c(MonotonicWithTime, NoVar)
+        if (all(f@exprs[ , MonoChan] == cummax(f@exprs[ , MonoChan])) == TRUE){
+            MonotonicWithTime <- c(MonotonicWithTime, MonoChan)
         }
     }
     names(MonotonicWithTime) <- NULL

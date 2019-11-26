@@ -10,4 +10,5 @@
 0.99.12: Added UnifTimeCheck parameter to allow the user to adjust the value.
 0.99.13: Changed default UseCairo to F. Added UseCairo and UnifTimeCheck parameter to second run code. Changed email.
 0.99.14: Added AlwaysClean parameter to allow for not skipping if nice. Also added to the man pages.
+0.99.15: Small bug fix with monotonically increasing channels.
 
