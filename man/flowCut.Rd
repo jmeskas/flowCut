@@ -85,6 +85,9 @@ flowCut (f, Segment=500, Channels=NULL, Directory=NULL, FileID=NULL, Plot="Flagg
     \item{AlwaysClean}{
 	A logical value to clean the file (or not) with the multi standard deviation removal method (See RemoveMultiSD). If it passes all the tests (MeanOfMeans, MaxOfMeans and MaxContin) it is deemed clean enough and will skip further cleaning if AlwaysClean = FALSE. Otherwise, AlwaysClean = TRUE, the code will attempt to clean the file with the requirement of being flagged by one of the tests (MeanOfMeans, MaxOfMeans and MaxContin).
     }
+    \item{RemoveMultiSD}{
+	A logical value used to ignore the monontonically increasing in time flagging test. If TRUE it will ignore the test. Default is FALSE.
+    }    
     \item{Verbose}{
         A logical value that dictates if computational information is printed while the code is running. The default is FALSE.
     }

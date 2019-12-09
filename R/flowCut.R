@@ -24,7 +24,8 @@ flowCut <- function(f,
                     UseCairo=FALSE,
                     UnifTimeCheck=0.22,
                     RemoveMultiSD=7,
-		    AlwaysClean=FALSE,
+		            AlwaysClean=FALSE,
+		            IgnoreMonotonic=FALSE,
                     Verbose=FALSE
                     ){
 
@@ -400,7 +401,7 @@ flowCut <- function(f,
     f.org <- f
 
     #### Test if the file is monotonic ########################################
-    if ( all(f@exprs[ , Time.loc] == cummax(f@exprs[ , Time.loc])) == FALSE ){
+    if ( all(f@exprs[ , Time.loc] == cummax(f@exprs[ , Time.loc])) == FALSE && !IgnoreMonotonic){
         message("The flow frame is not monotonically increasing in time")
         resTable["Is it monotonically increasing in time", ] <- "F"
     } else {
