@@ -12,4 +12,4 @@
 0.99.14: Added AlwaysClean parameter to allow for not skipping if nice. Also added to the man pages.
 0.99.15: Small bug fix with monotonically increasing channels.
 0.99.16: Added IgnoreMonotonic paramater to ignore the monotonically increasing in time flagging test.
-
+0.99.17: Changed license.
