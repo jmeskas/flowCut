@@ -10,11 +10,17 @@
 }
 
 \usage{
-    removeLowDensSections (f, Segment=500, LowDensityRemoval=0.1, Verbose=FALSE, Time.loc)
+    removeLowDensSections (f, Time.loc, Segment=500, LowDensityRemoval=0.1, Verbose=FALSE)
 }
 \arguments{
     \item{f}{
         A single flowFrame to be processed.
+    }
+    \item{Time.loc}{
+        An positive interger value for the location of the time channel.
+    }
+    \item{Segment}{
+        An integer value that specifies the number of events in each segment to be analyzed. A single segment is defaulted to contain 500 events.
     }
     \item{LowDensityRemoval}{
         An numeric value between 0 and 1 that specifies the proportion cut-off of the low density region. All events with less density than LowDensityRemoval will be removed. The default is 0.1.

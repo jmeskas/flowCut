@@ -7,4 +7,6 @@ importFrom(grDevices, dev.off)
 importFrom(graphics, abline, lines, par, points, title)
 importFrom(stats, density, quantile, sd)
 importFrom(e1071, moment)
+importFrom(grDevices, png)
+importFrom(graphics, legend)
 

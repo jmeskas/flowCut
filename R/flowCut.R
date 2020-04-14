@@ -26,6 +26,7 @@ flowCut <- function(f,
                     RemoveMultiSD=7,
 		            AlwaysClean=FALSE,
 		            IgnoreMonotonic=FALSE,
+		            MonotonicFix=NULL,
                     Verbose=FALSE
                     ){
 
@@ -67,7 +68,7 @@ flowCut <- function(f,
     resTable["FileID", ] <- FileID
 
     if (class(f) != "flowFrame"){
-        message("f must be a flowFrame")
+        message("f must be a flowFrame.")
         resTable["Has the file passed", ] <- "f must be a flowFrame"
         return(list(frame=f, ind=NULL, data=resTable, worstChan=NULL))
     }
@@ -165,9 +166,9 @@ flowCut <- function(f,
         resTable["Has the file passed", ] <- "UseCairo must be a logical (boolean)."
         return(list(frame=f, ind=NULL, data=resTable, worstChan=NULL))
     }
-    if (!is.null(UnifTimeCheck) && !is.numeric(UnifTimeCheck) ){
-        message("UnifTimeCheck must be numeric.")
-        resTable["Has the file passed", ] <- "UnifTimeCheck must be numeric."
+    if (!is.numeric(UnifTimeCheck) || (UnifTimeCheck < 0) || (UnifTimeCheck > 0.5) ){
+        message("UnifTimeCheck must be numeric between 0 and 0.5.")
+        resTable["Has the file passed", ] <- "UnifTimeCheck must be numeric between 0 and 0.5."
         return(list(frame=f, ind=NULL, data=resTable, worstChan=NULL))
     }
     if (!is.null(RemoveMultiSD) && !is.numeric(RemoveMultiSD) ){
@@ -176,8 +177,18 @@ flowCut <- function(f,
         return(list(frame=f, ind=NULL, data=resTable, worstChan=NULL))
     }
     if (!is.logical(AlwaysClean)){
-        message("AlwaysClean must be a logical (boolean).)")
-        resTable["Has the file passed", ] <- "AlwaysClean must be a logical (boolean).)"
+        message("AlwaysClean must be a logical (boolean).")
+        resTable["Has the file passed", ] <- "AlwaysClean must be a logical (boolean)."
+        return(list(frame=f, ind=NULL, data=resTable, worstChan=NULL))
+    }
+    if (!is.logical(IgnoreMonotonic)){
+        message("IgnoreMonotonic must be a logical (boolean).")
+        resTable["Has the file passed", ] <- "IgnoreMonotonic must be a logical (boolean)."
+        return(list(frame=f, ind=NULL, data=resTable, worstChan=NULL))
+    }
+    if (!is.null(MonotonicFix) && (!is.numeric(MonotonicFix) || (MonotonicFix < 0))){
+        message("MonotonicFix must be NULL or a number greater than or equal to 0.")
+        resTable["Has the file passed", ] <- "MonotonicFix must be NULL or a number greater than or equal to 0."
         return(list(frame=f, ind=NULL, data=resTable, worstChan=NULL))
     }
     if (!is.logical(Verbose)){
@@ -253,6 +264,55 @@ flowCut <- function(f,
     }
 
 
+    #### Monotonic in Time fix ####
+    if (!is.null(MonotonicFix)){
+        time.data <- f@exprs[,Time.loc]
+        if ( all(time.data == cummax(time.data)) == FALSE){
+            message(paste0("Fixing file ", FileID, " for the monotonic time issue."))
+
+            time.diff <- time.data[2:length(time.data)] - time.data[1:(length(time.data)-1)]
+            diff.ind.strong <- which(time.diff < -MonotonicFix)
+            diff.ind.all    <- which(time.diff < 0)
+
+            if (length(diff.ind.strong) > 0){
+                for (mono.ind in 1:length(diff.ind.strong)){
+                        time.data[(diff.ind.strong[mono.ind]+1):length(time.data)] <- 
+                            time.data[(diff.ind.strong[mono.ind]+1):length(time.data)] + abs(time.diff[diff.ind.strong[mono.ind]])
+                }
+            } else {
+                   message(paste0("All of file ", FileID, "'s monotonic issues are larger than MonotonicFix and were not adjusted."))
+            }
+            
+            if(Plot == "All" || (Plot == "Flagged Only")){
+                suppressWarnings ( dir.create ( paste0(Directory, "/Mono/"), recursive = TRUE) )
+                pngMono <- paste0(Directory, "/Mono/", gsub(".fcs","",FileID), "_Fix.png")    
+                
+                if ( PrintToConsole == FALSE) {
+                    if ( UseCairo == TRUE){
+                        CairoPNG ( pngMono, width = 800, height = 600)
+                    } else {
+                        png ( pngMono, width = 800, height = 600)
+                    }
+                } # else print to console with default settings
+                
+                par(mfrow = c(1,1), oma = c(0,0,0,0), mar=c(5,5,3,1))
+                    plot(1:length(time.data), time.data, pch=19, cex=0.2, lty=2, col="blue",
+                    main=paste0("Monotonic Time Correction: ", gsub(".fcs","",FileID)), xlab= "Cell Index", ylab="Time")
+                    points(1:length(f@exprs[,Time.loc]), f@exprs[,Time.loc], pch=19, cex=0.2)
+                    if (length(diff.ind.all) > 0){abline(v=diff.ind.all, col="red")}
+                    if (length(diff.ind.strong) > 0){abline(v=diff.ind.strong, col="green4")}
+                    legend("bottomright", legend=c("Original", "Corrected", "Jump Fixed", "Jump Not Fixed"), 
+                           col=c("black", "blue", "green4", "red"), lty=1, cex=1, lwd=c(2,2,1,1))
+                if ( PrintToConsole == FALSE) {
+                    dev.off()
+                } else {
+                    par(mfrow=c(1,1), mar=c(5,5,4,2), mgp=c(3,1,0)) # back to default
+                }
+
+            }
+            f@exprs[,Time.loc] <- time.data
+        }
+    }
 
     # only for the cases that have channels that are monotonically increasing in themselves. It has nothing to do with monotonically increasing in the time dimension.
     MonotonicWithTime <- NULL
@@ -284,7 +344,7 @@ flowCut <- function(f,
         # if(length(which(NoVariation != all.Time.loc)) >= 1){
         if(length(which(is.na(match(all.Time.loc,NoVariation)))) >= 1){ # does something exist in all.Time.loc that isn't in NoVariation
 
-            message("The first time channel will be replaced by the second time channel")
+            message("The first time channel will be replaced by the second time channel.")
             Time.loc <- all.Time.loc[-which(all.Time.loc == NoVariation)][1]
             f@parameters@data$name[Time.loc] <- "Time"
             f@parameters@data$name[all.Time.loc[which(all.Time.loc != Time.loc)]] <-
@@ -402,14 +462,14 @@ flowCut <- function(f,
 
     #### Test if the file is monotonic ########################################
     if ( all(f@exprs[ , Time.loc] == cummax(f@exprs[ , Time.loc])) == FALSE && !IgnoreMonotonic){
-        message("The flow frame is not monotonically increasing in time")
+        message("The flow frame is not monotonically increasing in time.")
         resTable["Is it monotonically increasing in time", ] <- "F"
     } else {
         resTable["Is it monotonically increasing in time", ] <- "T"
     }
 
     #### Remove low density sections ##########################################
-    res.temp <- removeLowDensSections(f, Segment, LowDensityRemoval, Verbose=Verbose, Time.loc=Time.loc)
+    res.temp <- removeLowDensSections(f, Time.loc=Time.loc, Segment, LowDensityRemoval, Verbose=Verbose)
     f <- res.temp$frame; removeIndLowDens <- res.temp$rem.ind; remove(res.temp)
     ifelse(length(removeIndLowDens) >= 1 ,
         resTable["Has a low density section been removed", ] <- "T",
@@ -434,7 +494,7 @@ flowCut <- function(f,
         AmountMeanRangeKeep=AmountMeanRangeKeep,
         AmountMeanSDKeep=AmountMeanSDKeep,
         RemoveMultiSD=RemoveMultiSD,
-	AlwaysClean=AlwaysClean,
+	    AlwaysClean=AlwaysClean,
         Verbose=Verbose,
         Time.loc=Time.loc
     )
@@ -519,7 +579,7 @@ flowCut <- function(f,
         AmountMeanRangeKeep=AmountMeanRangeKeep,
         AmountMeanSDKeep=AmountMeanSDKeep,
         RemoveMultiSD=RemoveMultiSD,
-	AlwaysClean=AlwaysClean,
+	    AlwaysClean=AlwaysClean,
         Verbose=Verbose,
         Time.loc=Time.loc
     )
@@ -766,11 +826,13 @@ flowCut <- function(f,
             AmountMeanSDKeep=AmountMeanSDKeep,
             AmountMeanRangeKeep=AmountMeanRangeKeep,
             PrintToConsole=PrintToConsole,
-            AllowFlaggedRerun=pngName,
+            AllowFlaggedRerun=pngName, # forces flowCut to not run a third time
             UseCairo=UseCairo,
             UnifTimeCheck=UnifTimeCheck,
             RemoveMultiSD=RemoveMultiSD,
-	    AlwaysClean=AlwaysClean,
+	        AlwaysClean=AlwaysClean,
+            IgnoreMonotonic=IgnoreMonotonic,
+            MonotonicFix=MonotonicFix,
             Verbose=Verbose
         )
         if(res_flowCut$data["Has the file passed", ] == "Time test(s) failed."){
@@ -827,7 +889,7 @@ flowCut <- function(f,
 #  or after these low density sections.
 # Because the density functions indices do not match with the flowFrames
 #  indices, density function indices need to convert to flowFrame indices.
-removeLowDensSections <- function(f, Segment=500, LowDensityRemoval=0.1, Verbose=FALSE, Time.loc){
+removeLowDensSections <- function(f, Time.loc, Segment=500, LowDensityRemoval=0.1, Verbose=FALSE){
 
     if(LowDensityRemoval == 0){ # dont want to remove low density on the rerun
         return(list(frame=f, rem.ind=NULL))
