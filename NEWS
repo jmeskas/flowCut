@@ -14,3 +14,4 @@
 0.99.16: Added IgnoreMonotonic paramater to ignore the monotonically increasing in time flagging test.
 0.99.17: Changed license.
 0.99.18: Added monotonic time fix option.
+0.99.19: Fixed formatting issues in vignette.
