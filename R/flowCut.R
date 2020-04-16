@@ -67,7 +67,7 @@ flowCut <- function(f,
     }
     resTable["FileID", ] <- FileID
 
-    if (class(f) != "flowFrame"){
+    if (!is(f,"flowFrame")){
         message("f must be a flowFrame.")
         resTable["Has the file passed", ] <- "f must be a flowFrame"
         return(list(frame=f, ind=NULL, data=resTable, worstChan=NULL))
@@ -248,18 +248,18 @@ flowCut <- function(f,
     )
     names(Extra.loc) <- NULL
     Extra.loc <- unique(Extra.loc)
-    if (length(Extra.loc) >= 1 && Verbose == T ){
+    if (length(Extra.loc) >= 1 && Verbose == TRUE ){
         cat(paste0("Channels ", paste0(Extra.loc, collapse = ", "), " are removed as they are not channels that need to be analyzed.\n"))
     }
 
     NoVariation <- NULL
     for (NoVar in 1:length(colnames(f))){
-        if (sd(f@exprs[,NoVar], na.rm = T) == 0){
+        if (sd(f@exprs[,NoVar], na.rm = TRUE) == 0){
             NoVariation <- c(NoVariation, NoVar)
         }
     }
     names(NoVariation) <- NULL
-    if (length(NoVariation) >= 1 && Verbose == T ){
+    if (length(NoVariation) >= 1 && Verbose == TRUE ){
         message(paste0("Channels ", paste0(NoVariation, collapse = ", "), " have no variation and have been removed from the analysis."))
     }
 
@@ -328,7 +328,7 @@ flowCut <- function(f,
         MonotonicWithTime <- MonotonicWithTime[-match(all.Time.loc, MonotonicWithTime, nomatch=0)]
     }
 
-    if (length(MonotonicWithTime) >= 1 && Verbose == T ){
+    if (length(MonotonicWithTime) >= 1 && Verbose == TRUE ){
         message(paste0("Channels ", paste0(MonotonicWithTime, collapse = ", "), " are monotonically increasing in time and have been removed from the analysis."))
     }
 
@@ -723,7 +723,7 @@ flowCut <- function(f,
         }
 
         suppressWarnings ( dir.create ( paste0(Directory), recursive = TRUE) )
-        if ( AllowFlaggedRerun != T && AllowFlaggedRerun != F && file.exists(AllowFlaggedRerun) ){
+        if ( AllowFlaggedRerun != TRUE && AllowFlaggedRerun != FALSE && file.exists(AllowFlaggedRerun) ){
             pngName <- gsub(".png", "_2nd_run.png", pngName)
         }
 
@@ -1219,7 +1219,7 @@ calcMeansAndSegmentsRemoved <- function(
                             (mean(cellDelete2)+5*sd(cellDelete2)) )]
 
             all_cut <- deGate(cellDelete2, tinypeak.removal = 0.001,
-                            all.cuts = TRUE, upper = TRUE, verbose = F, count.lim = 3)
+                            all.cuts = TRUE, upper = TRUE, verbose = FALSE, count.lim = 3)
 
             if (!anyNA(all_cut)){
                 # We need to set a limit on peaks
@@ -1256,16 +1256,16 @@ calcMeansAndSegmentsRemoved <- function(
             } else {
                 if (length(peaks_xind)==1){
                     upper_cut <- deGate(cellDelete2, tinypeak.removal = 0.1, upper = TRUE, use.upper = TRUE,
-                                        alpha = 0.1, percentile = .95, verbose = F, count.lim = 3)
+                                        alpha = 0.1, percentile = .95, verbose = FALSE, count.lim = 3)
                     if (!is.na(upper_cut)){
                         # We don't want the upper cut and the all cut to be the
                         #  same because that means we are cutting at the 95 percentile
                         if (length(all_cut)==1 && upper_cut==all_cut){
                             upper_cut <- deGate(cellDelete2, tinypeak.removal = 0.1, upper = TRUE, use.upper = TRUE,
-                                                alpha = 0.05, verbose = F, count.lim = 3)
+                                                alpha = 0.05, verbose = FALSE, count.lim = 3)
                             if (upper_cut==all_cut){
                                 upper_cut <- deGate(cellDelete2, tinypeak.removal = 0.1, upper = TRUE, use.upper = TRUE,
-                                                    alpha = 0.01, verbose = F, count.lim = 3)
+                                                    alpha = 0.01, verbose = FALSE, count.lim = 3)
                             }
                         }
                     }

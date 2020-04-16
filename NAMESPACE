@@ -9,4 +9,4 @@ importFrom(stats, density, quantile, sd)
 importFrom(e1071, moment)
 importFrom(grDevices, png)
 importFrom(graphics, legend)
-
+importFrom("methods", "is")

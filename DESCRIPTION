@@ -1,17 +1,22 @@
 Package: flowCut
 Type: Package
-Title: Precise and Accurate Automated Removal of Outlier Events and Flagging 
-    of Files Based on Time Versus Fluorescence Analysis
+Title: Precise and Accurate Automated Removal of Outlier Events and
+        Flagging of Files Based on Time Versus Fluorescence Analysis
 Version: 0.99.18
 Date: 2020-04-07
 Author: Justin Meskas, Sherrie Wang
 Maintainer: Justin Meskas <justinmeskas@gmail.com>
 Depends: R (>= 3.4), flowCore
-Imports: flowDensity (>= 1.13.1), Cairo, e1071, grDevices, graphics, stats
+Imports: flowDensity (>= 1.13.1), Cairo, e1071, grDevices, graphics,
+        stats,methods
 Description: Removing segments that show statistical differences from other 
     segments.
-Suggests: RUnit, BiocGenerics 
-biocViews: FlowCytometry, Preprocessing, QualityControl, CellBasedAssays
+VignetteBuilder: knitr
+Suggests: RUnit, BiocGenerics, knitr
+biocViews: FlowCytometry, Preprocessing, QualityControl,
+        CellBasedAssays
 License: Artistic-2.0
 LazyLoad: yes
 RoxygenNote: 6.0.1
+NeedsCompilation: no
+Packaged: 2020-04-16 02:10:59 UTC; swang
