@@ -1,7 +1,7 @@
 
 ---
 author: Justin Meskas, Sherrie Wang
-email: justinmeskas@gmail.ca, swang@bccrc.ca
+email: justinmeskas@gmail.com, swang@bccrc.ca
 date: May 2020
 output:
   pdf_document: default
