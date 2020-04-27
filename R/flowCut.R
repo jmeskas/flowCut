@@ -24,9 +24,9 @@ flowCut <- function(f,
                     UseCairo=FALSE,
                     UnifTimeCheck=0.22,
                     RemoveMultiSD=7,
-		            AlwaysClean=FALSE,
-		            IgnoreMonotonic=FALSE,
-		            MonotonicFix=NULL,
+                    AlwaysClean=FALSE,
+                    IgnoreMonotonic=FALSE,
+                    MonotonicFix=NULL,
                     Verbose=FALSE
                     ){
 
@@ -74,14 +74,16 @@ flowCut <- function(f,
     }
     if (!is.numeric(Segment) || (Segment <= 0)){
         message("Segment must be a number larger than 0.")
-        resTable["Has the file passed", ] <- "Segment must be a number larger than 0."
+        resTable["Has the file passed", ] <- paste0("Segment",
+                                                    "must be a number larger than 0.")
         return(list(frame=f, ind=NULL, data=resTable, worstChan=NULL))
     }
 
     if (nrow(f) <= 3*Segment){ # deGate requires count.lim = 3
         message(paste0("Either your Segment size is too large or your number",
                 " of cells is too small."))
-        resTable["Has the file passed", ] <- "Either your Segment size is too large or your number of cells is too small."
+        resTable["Has the file passed", ] <- paste0("Either your",
+                                                    "Segment size is too large or your number of cells is too small.")
         return(list(frame=f, ind=NULL, data=resTable, worstChan=NULL))
     }
     if (!is.character(Directory)){
@@ -91,23 +93,29 @@ flowCut <- function(f,
     }
     if (!is.character(FileID) && !is.numeric(FileID)){
         message("FileID must be a character or a number.")
-        resTable["Has the file passed", ] <- "FileID must be a character or a number."
+        resTable["Has the file passed", ] <- paste0("FileID",
+                                                    "must be a character or a number.")
         return(list(frame=f, ind=NULL, data=resTable, worstChan=NULL))
     }
     if ( !(Plot == "None" || Plot == "All" || Plot == "Flagged Only") ){
-        message(paste0("Plot must be a character with one of the following",
+        message(paste0("Plot must be a character",
+                       "with one of the following",
                        " options: \'None\', \'All\', or \'Flagged Only\'."))
-        resTable["Has the file passed", ] <- "Plot must be a character with one of the following options: \'None\', \'All\', or \'Flagged Only\'."
+        resTable["Has the file passed", ] <- paste0("Plot must be a character", 
+                                                    " with one of the following options:",
+                                                    " \'None\', \'All\', or \'Flagged Only\'.")
         return(list(frame=f, ind=NULL, data=resTable, worstChan=NULL))
     }
     if (!is.numeric(MaxContin) || (MaxContin < 0)){
         message("MaxContin must be a number larger than 0.")
-        resTable["Has the file passed", ] <- "MaxContin must be a number larger than 0."
+        resTable["Has the file passed", ] <- paste0("MaxContin",
+                                                    " must be a number larger than 0.")
         return(list(frame=f, ind=NULL, data=resTable, worstChan=NULL))
     }
     if (!is.numeric(MeanOfMeans) || (MeanOfMeans < 0)){
         message("MeanOfMeans must be a number larger than 0.")
-        resTable["Has the file passed", ] <- "MeanOfMeans must be a number larger than 0."
+        resTable["Has the file passed", ] <- paste0("MeanOfMeans",
+                                                    " must be a number larger than 0.")
         return(list(frame=f, ind=NULL, data=resTable, worstChan=NULL))
     }
     if (!is.numeric(MaxOfMeans) || (MaxOfMeans < 0)){
@@ -253,7 +261,7 @@ flowCut <- function(f,
     }
 
     NoVariation <- NULL
-    for (NoVar in 1:length(colnames(f))){
+    for (NoVar in seq_len(length(colnames(f)))){
         if (sd(f@exprs[,NoVar], na.rm = TRUE) == 0){
             NoVariation <- c(NoVariation, NoVar)
         }
@@ -270,12 +278,12 @@ flowCut <- function(f,
         if ( all(time.data == cummax(time.data)) == FALSE){
             message(paste0("Fixing file ", FileID, " for the monotonic time issue."))
 
-            time.diff <- time.data[2:length(time.data)] - time.data[1:(length(time.data)-1)]
+            time.diff <- time.data[2:length(time.data)] - time.data[seq_len(length(time.data)-1)]
             diff.ind.strong <- which(time.diff < -MonotonicFix)
             diff.ind.all    <- which(time.diff < 0)
 
             if (length(diff.ind.strong) > 0){
-                for (mono.ind in 1:length(diff.ind.strong)){
+                for (mono.ind in seq_len(length(diff.ind.strong))){
                         time.data[(diff.ind.strong[mono.ind]+1):length(time.data)] <- 
                             time.data[(diff.ind.strong[mono.ind]+1):length(time.data)] + abs(time.diff[diff.ind.strong[mono.ind]])
                 }
@@ -296,9 +304,9 @@ flowCut <- function(f,
                 } # else print to console with default settings
                 
                 par(mfrow = c(1,1), oma = c(0,0,0,0), mar=c(5,5,3,1))
-                    plot(1:length(time.data), time.data, pch=19, cex=0.2, lty=2, col="blue",
+                    plot(seq_len(length(time.data)), time.data, pch=19, cex=0.2, lty=2, col="blue",
                     main=paste0("Monotonic Time Correction: ", gsub(".fcs","",FileID)), xlab= "Cell Index", ylab="Time")
-                    points(1:length(f@exprs[,Time.loc]), f@exprs[,Time.loc], pch=19, cex=0.2)
+                    points(seq_len(length(f@exprs[,Time.loc])), f@exprs[,Time.loc], pch=19, cex=0.2)
                     if (length(diff.ind.all) > 0){abline(v=diff.ind.all, col="red")}
                     if (length(diff.ind.strong) > 0){abline(v=diff.ind.strong, col="green4")}
                     legend("bottomright", legend=c("Original", "Corrected", "Jump Fixed", "Jump Not Fixed"), 
@@ -316,7 +324,7 @@ flowCut <- function(f,
 
     # only for the cases that have channels that are monotonically increasing in themselves. It has nothing to do with monotonically increasing in the time dimension.
     MonotonicWithTime <- NULL
-    for (MonoChan in 1:length(colnames(f))){
+    for (MonoChan in seq_len(length(colnames(f)))){
         if (all(f@exprs[ , MonoChan] == cummax(f@exprs[ , MonoChan])) == TRUE){
             MonotonicWithTime <- c(MonotonicWithTime, MonoChan)
         }
@@ -448,7 +456,7 @@ flowCut <- function(f,
     # Use all non scatter/time channels unless otherwise specified
     if (!is.null(Channels)){
         if (all(is.character(Channels))){
-            Channels <- sort(unique(sapply(1:length(Channels), function(x) {
+            Channels <- sort(unique(sapply(seq_len(length(Channels)), function(x) {
                 grep(tolower(Channels[x]), tolower(f@parameters@data$desc))
             })))
         }
@@ -494,7 +502,7 @@ flowCut <- function(f,
         AmountMeanRangeKeep=AmountMeanRangeKeep,
         AmountMeanSDKeep=AmountMeanSDKeep,
         RemoveMultiSD=RemoveMultiSD,
-	    AlwaysClean=AlwaysClean,
+        AlwaysClean=AlwaysClean,
         Verbose=Verbose,
         Time.loc=Time.loc
     )
@@ -526,7 +534,7 @@ flowCut <- function(f,
         # Turn segments removed into ranges for printing to console
         del.seg.list <-
             split(deletedSegments1, cumsum(c(1, diff(deletedSegments1) != 1)))
-        print.segs.rem <- sapply(1:length(del.seg.list), function(x) {
+        print.segs.rem <- sapply(seq_len(length(del.seg.list)), function(x) {
             if( length(del.seg.list[[x]]) >= 2) {
                 paste0(del.seg.list[[x]][1], "-",
                     del.seg.list[[x]][length(del.seg.list[[x]])]
@@ -545,7 +553,7 @@ flowCut <- function(f,
         }
         resTable["How many segments have been removed", ] <-
             as.character( length(deletedSegments1) )
-        for (n in 1:length(deletedSegments1)){
+        for (n in seq_len(length(deletedSegments1))){
             if (deletedSegments1[n] == totalNumSeg)
                 removed.ind <-
                     c(
@@ -579,7 +587,7 @@ flowCut <- function(f,
         AmountMeanRangeKeep=AmountMeanRangeKeep,
         AmountMeanSDKeep=AmountMeanSDKeep,
         RemoveMultiSD=RemoveMultiSD,
-	    AlwaysClean=AlwaysClean,
+        AlwaysClean=AlwaysClean,
         Verbose=Verbose,
         Time.loc=Time.loc
     )
@@ -599,7 +607,7 @@ flowCut <- function(f,
     maxDistJumped <- rep(0, max(CleanChan.loc))
     for ( j in CleanChan.loc ){
         temp.vect <- rep(0, length(storeMeans2[[j]])-1)
-        for ( l in 1:(length(storeMeans2[[j]])-1) ){
+        for ( l in seq_len(length(storeMeans2[[j]])-1) ){
             temp.vect[l] <- abs(storeMeans2[[j]][l]-storeMeans2[[j]][[l+1]]) /
                 (quantiles1[[j]]["98%"]-quantiles1[[j]]["2%"])
         }
@@ -667,7 +675,7 @@ flowCut <- function(f,
     if ( !is.null(removed.ind ) && !is.null(removeIndLowDens)){
         # lowDens was removed first
         temp <- setdiff(1:nrow(f.org), removeIndLowDens)
-        to.be.kept <- temp[setdiff(1:length(temp), removed.ind)]
+        to.be.kept <- temp[setdiff(seq_len(length(temp)), removed.ind)]
         to.be.removed <- setdiff(1:nrow(f.org), to.be.kept)
     }
 
@@ -830,7 +838,7 @@ flowCut <- function(f,
             UseCairo=UseCairo,
             UnifTimeCheck=UnifTimeCheck,
             RemoveMultiSD=RemoveMultiSD,
-	        AlwaysClean=AlwaysClean,
+            AlwaysClean=AlwaysClean,
             IgnoreMonotonic=IgnoreMonotonic,
             MonotonicFix=MonotonicFix,
             Verbose=Verbose
@@ -925,11 +933,11 @@ removeLowDensSections <- function(f, Time.loc, Segment=500, LowDensityRemoval=0.
     if (length(range.low.dens) != 0 ){
 
         # change groups of indices to ranges
-        range.low.dens <- lapply(1:length(range.low.dens), function(x){
+        range.low.dens <- lapply(seq_len(length(range.low.dens)), function(x){
             range(range.low.dens[[x]])
         })
         # Add 2.5% each way to the range.
-        range.low.dens <- lapply(1:(length(range.low.dens)), function(x){
+        range.low.dens <- lapply(seq_len(length(range.low.dens)), function(x){
             range.temp <- range.low.dens[[x]][2]- range.low.dens[[x]][1]
 
             # if (range.temp <= 0.25 *(maxTime-minTime)){ # only add buffer if range is less than 25% of the total time range
@@ -947,7 +955,7 @@ removeLowDensSections <- function(f, Time.loc, Segment=500, LowDensityRemoval=0.
         })
 
         # Change density function indices to time coordinates
-        range.low.dens <- lapply(1:length(range.low.dens), function(x){
+        range.low.dens <- lapply(seq_len(length(range.low.dens)), function(x){
             c(dens.f$x[range.low.dens[[x]][1]],
               dens.f$x[range.low.dens[[x]][2]]
             )
@@ -957,7 +965,7 @@ removeLowDensSections <- function(f, Time.loc, Segment=500, LowDensityRemoval=0.
 
         # Change time coordinates to flowframe indices, removeIndLowDens
         #  contains flowframe indices to be removed
-        for ( b2 in 1:length(range.low.dens) ){
+        for ( b2 in seq_len(length(range.low.dens)) ){
             removeIndLowDens <- c(
                 removeIndLowDens,
                 intersect(
@@ -1008,7 +1016,7 @@ removeLowDensSections <- function(f, Time.loc, Segment=500, LowDensityRemoval=0.
                 temp.text[[1]] <- NULL
             }
 
-            for( p1 in 1:length(temp.text)){
+            for( p1 in seq_len(length(temp.text))){
                 temp.text[[p1]] <-
                     paste(round(temp.text[[p1]], digits = 2), collapse=" to ")
             }
@@ -1138,7 +1146,7 @@ calcMeansAndSegmentsRemoved <- function(
             cellDelete[[j]] <- cellDeleteExpo
 
             temp.vect <- rep(0, length(storeMeans[[j]])-1)
-            for(l in 1:(length(storeMeans[[j]])-1) ){
+            for(l in seq_len(length(storeMeans[[j]])-1) ){
                 temp.vect[l] <-
                     abs(storeMeans[[j]][l]-storeMeans[[j]][[l+1]]) /
                     (quantiles[[j]]["98%"]-quantiles[[j]]["2%"])
@@ -1157,7 +1165,7 @@ calcMeansAndSegmentsRemoved <- function(
                 )
             }
 
-            sdMeans <- sapply(1:length(storeMeans), function(x) {
+            sdMeans <- sapply(seq_len(length(storeMeans)), function(x) {
                 sd(storeMeans[[x]])
             } )
 
@@ -1180,7 +1188,7 @@ calcMeansAndSegmentsRemoved <- function(
         cellDelete1 <- do.call(cbind, cellDelete)
 
         cellDelete2 <- NULL
-        for ( m in 1:length(cellDelete1[ ,1]) ){
+        for ( m in seq_len(length(cellDelete1[ ,1])) ){
             cellDelete2[m] <- sum(cellDelete1[m, ])
         }
 
@@ -1226,7 +1234,7 @@ calcMeansAndSegmentsRemoved <- function(
                 #  because we don't want to overcut
                 if (length(peaks_xind) > 1){
                     sn <- NULL
-                    for ( ml in 1:(length(peaks_xind)-1) ){
+                    for ( ml in seq_len(length(peaks_xind)-1) ){
                         ind <- intersect   (which(all_cut > peaks_xind[ml  ]),
                                             which(all_cut < peaks_xind[ml+1]))
                         y_ind <- which(density(cellDelete2)$x %in% all_cut[ind])
@@ -1318,7 +1326,7 @@ calcMeansAndSegmentsRemoved <- function(
         size.in.a.row <- 5 # If greater or equal to 5 segments in a row, add 20% to each side
         adding.Segments <- NULL
 
-        length.range.seg.rem <- sapply(1:length(range.seg.rem), function(x){ length(range.seg.rem[[x]]) })
+        length.range.seg.rem <- sapply(seq_len(length(range.seg.rem)), function(x){ length(range.seg.rem[[x]]) })
         range.seg.rem.only.5.or.more <- range.seg.rem[which(length.range.seg.rem >= size.in.a.row)]
 
         range.seg.keep <- setdiff(1:totalNumSeg, unlist(range.seg.rem.only.5.or.more))
@@ -1336,7 +1344,7 @@ calcMeansAndSegmentsRemoved <- function(
             }
             # Adding buffer region only when the number of consecutive segments in the group to be deleted are quite large
 
-            for ( b2 in 1:length(range.seg.rem.only.5.or.more) ){
+            for ( b2 in seq_len(length(range.seg.rem.only.5.or.more)) ){
                 length_section <- length(range.seg.rem.only.5.or.more[[b2]])
                 for (j1 in CleanChan.loc){
 
@@ -1354,7 +1362,7 @@ calcMeansAndSegmentsRemoved <- function(
                                 side.pop <- -(side.pop-mean(main.pop))+mean(main.pop)
                             }
 
-                            for (k1 in 1:length(side.pop)){
+                            for (k1 in seq_len(length(side.pop))){
                                 if (length(side.pop) <= 2 || sd(side.pop) == 0 || (max(side.pop)-min(side.pop) == 0) ){
                                     break;
                                 }

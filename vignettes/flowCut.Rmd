@@ -3,12 +3,10 @@
 author: Justin Meskas, Sherrie Wang
 email: justinmeskas@gmail.com, swang@bccrc.ca
 date: May 2020
-output:
-  pdf_document: default
-  html_document: default
+output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{ _**flowCut**_: Precise and Accurate Automated Removal of Outlier Events and Flagging of Files Based on Time Versus Fluorescence Analysis}
-  %\VignetteEngine{knitr::knitr}
+  %\VignetteEngine{knitr::rmarkdown}
   \usepackage[utf8]{inputenc}
 ---
 
