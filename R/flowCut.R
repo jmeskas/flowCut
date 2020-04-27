@@ -99,8 +99,8 @@ flowCut <- function(f,
     }
     if ( !(Plot == "None" || Plot == "All" || Plot == "Flagged Only") ){
         message(paste0("Plot must be a character",
-                       "with one of the following",
-                       " options: \'None\', \'All\', or \'Flagged Only\'."))
+    "with one of the following",
+    " options: \'None\', \'All\', or \'Flagged Only\'."))
         resTable["Has the file passed", ] <- paste0("Plot must be a character", 
                                                     " with one of the following options:",
                                                     " \'None\', \'All\', or \'Flagged Only\'.")
@@ -221,8 +221,8 @@ flowCut <- function(f,
     names( SSC.loc) <- NULL
 
     Time.loc <- sort(unique(c(grep("time",  tolower(t.name)),
-                              grep("time",  tolower(t.desc)),
-                              grep("hdr-t", tolower(t.name))
+    grep("time",  tolower(t.desc)),
+    grep("hdr-t", tolower(t.name))
                 )))
 
     all.Time.loc <- Time.loc
@@ -234,8 +234,8 @@ flowCut <- function(f,
 
     if (length(all.Time.loc) >= 2){ # Multiple time channels
         message(paste0("This file has ", length(all.Time.loc),
-                       " time channels. flowCut has selected to use ",
-                       t.name[Time.loc], " - ", t.desc[Time.loc], "."))
+    " time channels. flowCut has selected to use ",
+    t.name[Time.loc], " - ", t.desc[Time.loc], "."))
         Time.loc <- Time.loc[1] # default to take the first.
 
         f@parameters@data$name[all.Time.loc[which(all.Time.loc != Time.loc)]] <-
@@ -257,7 +257,8 @@ flowCut <- function(f,
     names(Extra.loc) <- NULL
     Extra.loc <- unique(Extra.loc)
     if (length(Extra.loc) >= 1 && Verbose == TRUE ){
-        cat(paste0("Channels ", paste0(Extra.loc, collapse = ", "), " are removed as they are not channels that need to be analyzed.\n"))
+        cat(paste0("Channels ", paste0(Extra.loc, collapse = ", "), 
+        " are removed as they are not channels that need to be analyzed.\n"))
     }
 
     NoVariation <- NULL
@@ -268,7 +269,8 @@ flowCut <- function(f,
     }
     names(NoVariation) <- NULL
     if (length(NoVariation) >= 1 && Verbose == TRUE ){
-        message(paste0("Channels ", paste0(NoVariation, collapse = ", "), " have no variation and have been removed from the analysis."))
+        message(paste0("Channels ", paste0(NoVariation, collapse = ", "), 
+        " have no variation and have been removed from the analysis."))
     }
 
 
@@ -288,7 +290,8 @@ flowCut <- function(f,
                             time.data[(diff.ind.strong[mono.ind]+1):length(time.data)] + abs(time.diff[diff.ind.strong[mono.ind]])
                 }
             } else {
-                   message(paste0("All of file ", FileID, "'s monotonic issues are larger than MonotonicFix and were not adjusted."))
+                message(paste0("All of file ", FileID, 
+                "'s monotonic issues are larger than MonotonicFix and were not adjusted."))
             }
             
             if(Plot == "All" || (Plot == "Flagged Only")){
@@ -312,9 +315,9 @@ flowCut <- function(f,
                     legend("bottomright", legend=c("Original", "Corrected", "Jump Fixed", "Jump Not Fixed"), 
                            col=c("black", "blue", "green4", "red"), lty=1, cex=1, lwd=c(2,2,1,1))
                 if ( PrintToConsole == FALSE) {
-                    dev.off()
+                dev.off()
                 } else {
-                    par(mfrow=c(1,1), mar=c(5,5,4,2), mgp=c(3,1,0)) # back to default
+                par(mfrow=c(1,1), mar=c(5,5,4,2), mgp=c(3,1,0)) # back to default
                 }
 
             }
@@ -326,24 +329,24 @@ flowCut <- function(f,
     MonotonicWithTime <- NULL
     for (MonoChan in seq_len(length(colnames(f)))){
         if (all(f@exprs[ , MonoChan] == cummax(f@exprs[ , MonoChan])) == TRUE){
-            MonotonicWithTime <- c(MonotonicWithTime, MonoChan)
+        MonotonicWithTime <- c(MonotonicWithTime, MonoChan)
         }
     }
     names(MonotonicWithTime) <- NULL
     MonotonicWithTime <- sort(unique(MonotonicWithTime))
 
-    if ( length(which(match(all.Time.loc, MonotonicWithTime, nomatch=0) >= 1)) >= 1){
+       if ( length(which(match(all.Time.loc, MonotonicWithTime, nomatch=0) >= 1)) >= 1){
         MonotonicWithTime <- MonotonicWithTime[-match(all.Time.loc, MonotonicWithTime, nomatch=0)]
     }
 
-    if (length(MonotonicWithTime) >= 1 && Verbose == TRUE ){
+       if (length(MonotonicWithTime) >= 1 && Verbose == TRUE ){
         message(paste0("Channels ", paste0(MonotonicWithTime, collapse = ", "), " are monotonically increasing in time and have been removed from the analysis."))
     }
 
 
 
 
-    if(length(which(NoVariation == Time.loc)) >= 1){
+      if(length(which(NoVariation == Time.loc)) >= 1){
         message("Your time channel has no variation.")
         f@parameters@data$name[Time.loc] <- paste0(f@parameters@data$name[Time.loc], "-Removed")
         colnames(f@exprs)[Time.loc] <- paste0(colnames(f@exprs)[Time.loc], "-Removed")
@@ -356,9 +359,9 @@ flowCut <- function(f,
             Time.loc <- all.Time.loc[-which(all.Time.loc == NoVariation)][1]
             f@parameters@data$name[Time.loc] <- "Time"
             f@parameters@data$name[all.Time.loc[which(all.Time.loc != Time.loc)]] <-
-                paste0(f@parameters@data$name[all.Time.loc[which(all.Time.loc != Time.loc)]], "-Removed")
+            paste0(f@parameters@data$name[all.Time.loc[which(all.Time.loc != Time.loc)]], "-Removed")
             colnames(f@exprs)[all.Time.loc[which(all.Time.loc != Time.loc)]] <-
-                paste0(colnames(f@exprs)[all.Time.loc[which(all.Time.loc != Time.loc)]], "-Removed")
+            paste0(colnames(f@exprs)[all.Time.loc[which(all.Time.loc != Time.loc)]], "-Removed")
         }
     }
 
@@ -375,7 +378,7 @@ flowCut <- function(f,
             c("Time", "Time", 262144, -111, 262143)
         )
         rownames(f@parameters@data)[length(colnames(f))] <-
-            paste0("$P", length(colnames(f)))
+        paste0("$P", length(colnames(f)))
         f@description[paste0("P", length(colnames(f)), "DISPLAY")] <- "LIN" # "LOG"
         f@description[paste0("flowCore_$P", length(colnames(f)), "Rmax")] <- 262143
         f@description[paste0("flowCore_$P", length(colnames(f)), "Rmin")] <- 0
@@ -813,7 +816,6 @@ flowCut <- function(f,
     if (Verbose == TRUE){
         cat("Cleaning completed in: ", TimePrint(start0), "\n", sep="")
     }
-	
     if (AllowFlaggedRerun == TRUE && resTable["Has the file passed", ] == "F"){
         if (Verbose == TRUE){ cat("Running flowCut a second time.\n")}
         res_flowCut <- flowCut(
@@ -1198,8 +1200,7 @@ calcMeansAndSegmentsRemoved <- function(
         if ((round( max(maxDistJumped, na.rm=TRUE), digits=3) < MaxContin  )&&
             (round(mean(meanRangePerc, na.rm=TRUE), digits=3) < MeanOfMeans)&&
             (round( max(meanRangePerc, na.rm=TRUE), digits=3) < MaxOfMeans )&&
-            is.null(GateLineForce) &&
-	    AlwaysClean == FALSE){
+            is.null(GateLineForce) && AlwaysClean == FALSE){
             densityGateLine <- NULL
 
             range_7SD <- c(mean(cellDelete2)-RemoveMultiSD*sd(cellDelete2),

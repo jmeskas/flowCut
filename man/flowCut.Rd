@@ -99,24 +99,24 @@ flowCut (f,
         A numeric value for the cutoff point when flowCut decides to run or not run its code. Having too high of a value will increase the chances that flowCut crashes. This issue occurs when the time channel is not uniform. A simple test is done: If the mean of the time marker is larger than UnifTimeCheck away from the mid-point then the file is not run. Default is set at 0.22. This is a proportion of the range, and hence must be between 0 and 0.5. Consider only to change this slightly more positive to allow a few files to have cleaning if they are borderline cases.
     }
     \item{RemoveMultiSD}{
-	A numeric value used to remove very statistically different segments even when the file is nice. It is the amount of standard deviations away from the mean of all segments of which anything larger will be removed. Default is 7, not advised to reduce this below 3.
+    A numeric value used to remove very statistically different segments even when the file is nice. It is the amount of standard deviations away from the mean of all segments of which anything larger will be removed. Default is 7, not advised to reduce this below 3.
     }
     \item{AlwaysClean}{
-	A logical value to clean the file (or not) with the multi standard deviation removal method (See RemoveMultiSD). If it passes all the tests (MeanOfMeans, MaxOfMeans and MaxContin) it is deemed clean enough and will skip further cleaning if AlwaysClean = FALSE. Otherwise, AlwaysClean = TRUE, the code will attempt to clean the file without the requirement of being flagged by one of the tests (MeanOfMeans, MaxOfMeans and MaxContin).
+    A logical value to clean the file (or not) with the multi standard deviation removal method (See RemoveMultiSD). If it passes all the tests (MeanOfMeans, MaxOfMeans and MaxContin) it is deemed clean enough and will skip further cleaning if AlwaysClean = FALSE. Otherwise, AlwaysClean = TRUE, the code will attempt to clean the file without the requirement of being flagged by one of the tests (MeanOfMeans, MaxOfMeans and MaxContin).
     }
     \item{IgnoreMonotonic}{
-	A logical value used to ignore the monontonically increasing in time flagging test. If TRUE it will ignore the test. Default is FALSE.
+    A logical value used to ignore the monontonically increasing in time flagging test. If TRUE it will ignore the test. Default is FALSE.
     }    
     \item{MonotonicFix}{
-	A numeric value greater or equal to 0 used to fix the monontonic issues in time. If NULL, the default, the fix is skipped. The value is how large of a jump in backwards time that is allowed, anything larger will be corrected. Suggestion to use 1. Set to 0 to fix any monotonic in time issues for the entire file. See figures inside the folder "/Mono/" which is inside "Directory" (or your current directory if "Directory" is NULL). Plots will only be plotted if "Plot=All" or "Plot=Flagged Only".
+    A numeric value greater or equal to 0 used to fix the monontonic issues in time. If NULL, the default, the fix is skipped. The value is how large of a jump in backwards time that is allowed, anything larger will be corrected. Suggestion to use 1. Set to 0 to fix any monotonic in time issues for the entire file. See figures inside the folder "/Mono/" which is inside "Directory" (or your current directory if "Directory" is NULL). Plots will only be plotted if "Plot=All" or "Plot=Flagged Only".
     }   
     \item{Verbose}{
-        A logical value that dictates if computational information is printed while the code is running. The default is FALSE.
+    A logical value that dictates if computational information is printed while the code is running. The default is FALSE.
     }
 }
 
 \details{
-        flowCut's methodology is based on identifying both regions of low density and segments (default size of 500 events) that are significantly different from the rest. Eight measures of each segment (mean, median, 5th, 20th, 80th and 95th percentile, second moment (variation) and third moment (skewness)) are calculated. The density of the summation of the 8 measures and two parameters (MaxValleyHgt and MaxPercCut) will determine which events are significantly different and these will be removed. We also flag files if they display any of the following: 1) not monotonically increasing in time, 2) sudden changes in fluorescence, 3) large gradual change of fluorescence in all channels or 4) very large gradual change of fluorescence in one channel.
+    flowCut's methodology is based on identifying both regions of low density and segments (default size of 500 events) that are significantly different from the rest. Eight measures of each segment (mean, median, 5th, 20th, 80th and 95th percentile, second moment (variation) and third moment (skewness)) are calculated. The density of the summation of the 8 measures and two parameters (MaxValleyHgt and MaxPercCut) will determine which events are significantly different and these will be removed. We also flag files if they display any of the following: 1) not monotonically increasing in time, 2) sudden changes in fluorescence, 3) large gradual change of fluorescence in all channels or 4) very large gradual change of fluorescence in one channel.
 }
 
 \value{
