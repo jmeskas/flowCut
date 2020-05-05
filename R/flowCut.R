@@ -371,7 +371,7 @@ flowCut <- function(f,
                 " create one, but now flowCut will not be as fully",
                 " functional as it could be. Consider recording the time",
                 " for future projects.")
-        f@exprs <- cbind(f@exprs, 1:nrow(f))
+        f@exprs <- cbind(f@exprs, seq_len(nrow(f)))
         colnames(f@exprs)[length(colnames(f))+1] <- "Time"
         f@parameters@data <- rbind(
             f@parameters@data,
@@ -448,7 +448,7 @@ flowCut <- function(f,
     }
 
     # channels to clean
-    CleanChan.loc <- (1:ncol(f))[-c(FSC.loc, SSC.loc, Time.loc, all.Time.loc, Extra.loc, NoVariation, MonotonicWithTime)]
+    CleanChan.loc <- (seq_len(ncol(f)))[-c(FSC.loc, SSC.loc, Time.loc, all.Time.loc, Extra.loc, NoVariation, MonotonicWithTime)]
 
     if (length(CleanChan.loc) == 0 ){
         message("No marker channels to run flowCut on.")
@@ -565,7 +565,7 @@ flowCut <- function(f,
                     )
             if (deletedSegments1[n] != totalNumSeg)
                 removed.ind <-
-                    c(removed.ind, Segment*(deletedSegments1[n]-1)+(1:Segment))
+                    c(removed.ind, Segment*(deletedSegments1[n]-1)+(seq_len(Segment)))
         }
         f@exprs <- f@exprs[-removed.ind, ]
     }
@@ -677,9 +677,9 @@ flowCut <- function(f,
         to.be.removed <- removed.ind
     if ( !is.null(removed.ind ) && !is.null(removeIndLowDens)){
         # lowDens was removed first
-        temp <- setdiff(1:nrow(f.org), removeIndLowDens)
+        temp <- setdiff(seq_len(nrow(f.org)), removeIndLowDens)
         to.be.kept <- temp[setdiff(seq_len(length(temp)), removed.ind)]
-        to.be.removed <- setdiff(1:nrow(f.org), to.be.kept)
+        to.be.removed <- setdiff(seq_len(nrow(f.org)), to.be.kept)
     }
 
     resTable["% of events removed", ] <-
@@ -696,7 +696,7 @@ flowCut <- function(f,
     # Keep track of the worse channels by using asterisks
     asterisks <- rep("", max(CleanChan.loc))
     if(UseOnlyWorstChannels == TRUE){
-        asterisks <- sapply(1:max(CleanChan.loc), function(x) {
+        asterisks <- sapply(seq_len(max(CleanChan.loc)), function(x) {
             if(length(which(x == choosenChans)) >= 1){
                 asterisks <- " *"
             } else {
@@ -850,7 +850,7 @@ flowCut <- function(f,
             return(list(frame=f, ind=to.be.removed, data=resTable, worstChan=worstChan))
         }
 
-        indOfInd <- setdiff(1:nrow(f.org), to.be.removed)
+        indOfInd <- setdiff(seq_len(nrow(f.org)), to.be.removed)
         indOfInd <- sort(c(indOfInd[res_flowCut$ind], to.be.removed))
 
         resTableOfResTable <- res_flowCut$data
@@ -1086,8 +1086,8 @@ calcMeansAndSegmentsRemoved <- function(
     # Each segment containing 500 (Segments = 500) events
 
 
-    for ( k in 1:(totalNumSeg-1)){
-        temp <- f@exprs[Segment*(k-1)+(1:Segment), Time.loc]
+    for ( k in seq_len(totalNumSeg-1)){
+        temp <- f@exprs[Segment*(k-1)+(seq_len(Segment)), Time.loc]
         # timeCentres contains the means of each segment
         timeCentres[k] <- mean(temp)
     }
@@ -1100,8 +1100,8 @@ calcMeansAndSegmentsRemoved <- function(
         segSummary <- matrix(0, totalNumSeg, 8)
         # Calculating the eight features for each segment except the last one
         #  and store them in the matrix
-        for ( k in 1:(totalNumSeg-1)){
-            temp <- f@exprs[Segment*(k-1)+(1:Segment), c(j)]
+        for ( k in seq_len(totalNumSeg-1)){
+            temp <- f@exprs[Segment*(k-1)+(seq_len(Segment)), c(j)]
             segSummary[k, ] <-
                 c(
                 quantile(temp, probs = c(5,20,50,80,95)/100),
@@ -1131,7 +1131,7 @@ calcMeansAndSegmentsRemoved <- function(
             (quantiles[[j]]["98%"]-quantiles[[j]]["2%"])
 
         if (FirstOrSecond == "First"){
-            segSummary <- rbind(sapply(1:ncol(segSummary), function(x) {
+            segSummary <- rbind(sapply(seq_len(ncol(segSummary)), function(x) {
                 (segSummary[ ,x]-mean(segSummary[ ,x])) / sd(segSummary[ ,x])
             } ))
             segSummary <- replace(segSummary, is.nan(segSummary), 0)
@@ -1142,7 +1142,7 @@ calcMeansAndSegmentsRemoved <- function(
             # }
 
             # Sum up each row of the resulting matrix
-            cellDeleteExpo <- sapply(1:nrow(cellDeleteExpo), function(x) {
+            cellDeleteExpo <- sapply(seq_len(nrow(cellDeleteExpo)), function(x) {
                 sum(cellDeleteExpo[x, ])
             } )
             cellDelete[[j]] <- cellDeleteExpo
@@ -1162,7 +1162,7 @@ calcMeansAndSegmentsRemoved <- function(
         if (UseOnlyWorstChannels == TRUE){
             if (length(which(!is.na(meanRangePerc))) >= AmountMeanRangeKeep && AmountMeanRangeKeep >= 1){
                 choosenChans <- sort(
-                    unique(c(choosenChans, sapply(sort(meanRangePerc, decreasing = TRUE)[1:AmountMeanRangeKeep],
+                    unique(c(choosenChans, sapply(sort(meanRangePerc, decreasing = TRUE)[seq_len(AmountMeanRangeKeep)],
                         function(x) {which(x == meanRangePerc)} )))
                 )
             }
@@ -1173,7 +1173,7 @@ calcMeansAndSegmentsRemoved <- function(
 
             if( length(which(!is.na(sdMeans))) >= AmountMeanSDKeep && AmountMeanSDKeep >= 1 ) {
                 choosenChans <- sort(
-                    unique(c(choosenChans, sapply(sort(sdMeans, decreasing = TRUE)[1:AmountMeanSDKeep],
+                    unique(c(choosenChans, sapply(sort(sdMeans, decreasing = TRUE)[seq_len(AmountMeanSDKeep)],
                         function(x) {which(x == sdMeans)})))
                 )
             }
@@ -1330,7 +1330,7 @@ calcMeansAndSegmentsRemoved <- function(
         length.range.seg.rem <- sapply(seq_len(length(range.seg.rem)), function(x){ length(range.seg.rem[[x]]) })
         range.seg.rem.only.5.or.more <- range.seg.rem[which(length.range.seg.rem >= size.in.a.row)]
 
-        range.seg.keep <- setdiff(1:totalNumSeg, unlist(range.seg.rem.only.5.or.more))
+        range.seg.keep <- setdiff(seq_len(totalNumSeg), unlist(range.seg.rem.only.5.or.more))
         range.seg.keep <- split(range.seg.keep, cumsum(c(1, diff(range.seg.keep) != 1)))
 
 
