@@ -4,7 +4,7 @@ Title: Precise and Accurate Automated Removal of Outlier Events and
         Flagging of Files Based on Time Versus Fluorescence Analysis
 Version: 0.99.24
 Date: 2020-04-07
-Authors@R: personList(person("Justin","Meskas", role=c("cre","aut"), email="justinmeskas@gmail.com"),
+Authors@R: c(person("Justin","Meskas", role=c("cre","aut"), email="justinmeskas@gmail.com"),
                       person("Sherrie","Wang", role = "aut"))
 Depends: R (>= 3.4), flowCore
 Imports: flowDensity (>= 1.13.1), Cairo, e1071, grDevices, graphics,
