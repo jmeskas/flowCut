@@ -206,8 +206,8 @@ flowCut <- function(f,
     }
 
     #### Extracting the location of channels where flowCut will be applied ####
-    t.name <- f@parameters@data$name
-    t.desc <- f@parameters@data$desc
+    t.name <- parameters(f)@data$name
+    t.desc <- parameters(f)@data$desc
     FSC.loc  <- sort(unique(c(
                     grep("fsc", tolower(t.name)),
                     grep("fs lin", tolower(t.name)),
@@ -238,10 +238,10 @@ flowCut <- function(f,
     t.name[Time.loc], " - ", t.desc[Time.loc], ".")
         Time.loc <- Time.loc[1] # default to take the first.
 
-        f@parameters@data$name[all.Time.loc[which(all.Time.loc != Time.loc)]] <-
-            paste0(f@parameters@data$name[all.Time.loc[which(all.Time.loc != Time.loc)]], "-Removed")
-        colnames(f@exprs)[all.Time.loc[which(all.Time.loc != Time.loc)]] <-
-            paste0(colnames(f@exprs)[all.Time.loc[which(all.Time.loc != Time.loc)]], "-Removed")
+        parameters(f)@data$name[all.Time.loc[which(all.Time.loc != Time.loc)]] <-
+            paste0(parameters(f)@data$name[all.Time.loc[which(all.Time.loc != Time.loc)]], "-Removed")
+        colnames(exprs(f))[all.Time.loc[which(all.Time.loc != Time.loc)]] <-
+            paste0(colnames(exprs(f))[all.Time.loc[which(all.Time.loc != Time.loc)]], "-Removed")
     }
 
     Extra.loc <-  c(
@@ -256,7 +256,7 @@ flowCut <- function(f,
 
     NoVariation <- NULL
     for (NoVar in seq_len(length(colnames(f)))){
-        if (sd(f@exprs[,NoVar], na.rm = TRUE) == 0){
+        if (sd(exprs(f)[,NoVar], na.rm = TRUE) == 0){
             NoVariation <- c(NoVariation, NoVar)
         }
     }
@@ -269,7 +269,7 @@ flowCut <- function(f,
 
     #### Monotonic in Time fix ####
     if (!is.null(MonotonicFix)){
-        time.data <- f@exprs[,Time.loc]
+        time.data <- exprs(f)[,Time.loc]
         if ( all(time.data == cummax(time.data)) == FALSE){
             message(paste0("Fixing file ", FileID, " for the monotonic time issue."))
 
@@ -303,7 +303,7 @@ flowCut <- function(f,
                 par(mfrow = c(1,1), oma = c(0,0,0,0), mar=c(5,5,3,1))
                     plot(seq_len(length(time.data)), time.data, pch=19, cex=0.2, lty=2, col="blue",
                     main=paste0("Monotonic Time Correction: ", gsub(".fcs","",FileID)), xlab= "Cell Index", ylab="Time")
-                    points(seq_len(length(f@exprs[,Time.loc])), f@exprs[,Time.loc], pch=19, cex=0.2)
+                    points(seq_len(length(exprs(f)[,Time.loc])), exprs(f)[,Time.loc], pch=19, cex=0.2)
                     if (length(diff.ind.all) > 0){abline(v=diff.ind.all, col="red")}
                     if (length(diff.ind.strong) > 0){abline(v=diff.ind.strong, col="green4")}
                     legend("bottomright", legend=c("Original", "Corrected", "Jump Fixed", "Jump Not Fixed"), 
@@ -315,14 +315,14 @@ flowCut <- function(f,
                 }
 
             }
-            f@exprs[,Time.loc] <- time.data
+            exprs(f)[,Time.loc] <- time.data
         }
     }
 
     # only for the cases that have channels that are monotonically increasing in themselves. It has nothing to do with monotonically increasing in the time dimension.
     MonotonicWithTime <- NULL
     for (MonoChan in seq_len(length(colnames(f)))){
-        if (all(f@exprs[ , MonoChan] == cummax(f@exprs[ , MonoChan])) == TRUE){
+        if (all(exprs(f)[ , MonoChan] == cummax(exprs(f)[ , MonoChan])) == TRUE){
         MonotonicWithTime <- c(MonotonicWithTime, MonoChan)
         }
     }
@@ -343,8 +343,8 @@ flowCut <- function(f,
 
     if (length(which(NoVariation == Time.loc)) >= 1){
         message("Your time channel has no variation.")
-        f@parameters@data$name[Time.loc] <- paste0(f@parameters@data$name[Time.loc], "-Removed")
-        colnames(f@exprs)[Time.loc] <- paste0(colnames(f@exprs)[Time.loc], "-Removed")
+        parameters(f)@data$name[Time.loc] <- paste0(parameters(f)@data$name[Time.loc], "-Removed")
+        colnames(exprs(f))[Time.loc] <- paste0(colnames(exprs(f))[Time.loc], "-Removed")
         Time.loc <- NULL
 
         # if(length(which(NoVariation != all.Time.loc)) >= 1){
@@ -352,11 +352,11 @@ flowCut <- function(f,
 
             message("The first time channel will be replaced by the second time channel.")
             Time.loc <- all.Time.loc[-which(all.Time.loc == NoVariation)][1]
-            f@parameters@data$name[Time.loc] <- "Time"
-            f@parameters@data$name[all.Time.loc[which(all.Time.loc != Time.loc)]] <-
-            paste0(f@parameters@data$name[all.Time.loc[which(all.Time.loc != Time.loc)]], "-Removed")
-            colnames(f@exprs)[all.Time.loc[which(all.Time.loc != Time.loc)]] <-
-            paste0(colnames(f@exprs)[all.Time.loc[which(all.Time.loc != Time.loc)]], "-Removed")
+            parameters(f)@data$name[Time.loc] <- "Time"
+            parameters(f)@data$name[all.Time.loc[which(all.Time.loc != Time.loc)]] <-
+            paste0(parameters(f)@data$name[all.Time.loc[which(all.Time.loc != Time.loc)]], "-Removed")
+            colnames(exprs(f))[all.Time.loc[which(all.Time.loc != Time.loc)]] <-
+            paste0(colnames(exprs(f))[all.Time.loc[which(all.Time.loc != Time.loc)]], "-Removed")
         }
     }
 
@@ -366,22 +366,22 @@ flowCut <- function(f,
                 " create one, but now flowCut will not be as fully",
                 " functional as it could be. Consider recording the time",
                 " for future projects.")
-        f@exprs <- cbind(f@exprs, seq_len(nrow(f)))
-        colnames(f@exprs)[length(colnames(f))+1] <- "Time"
-        f@parameters@data <- rbind(
-            f@parameters@data,
+        exprs(f) <- cbind(exprs(f), seq_len(nrow(f)))
+        colnames(exprs(f))[length(colnames(f))+1] <- "Time"
+        parameters(f)@data <- rbind(
+            parameters(f)@data,
             c("Time", "Time", 262144, -111, 262143)
         )
-        rownames(f@parameters@data)[length(colnames(f))] <-
+        rownames(parameters(f)@data)[length(colnames(f))] <-
         paste0("$P", length(colnames(f)))
-        f@description[paste0("P", length(colnames(f)), "DISPLAY")] <- "LIN" # "LOG"
-        f@description[paste0("flowCore_$P", length(colnames(f)), "Rmax")] <- 262143
-        f@description[paste0("flowCore_$P", length(colnames(f)), "Rmin")] <- 0
-        f@description[paste0("P", length(colnames(f)), "B")] <- "0"
-        f@description[paste0("P", length(colnames(f)), "R")] <- "262143"
-        f@description[paste0("P", length(colnames(f)), "N")] <- "Time"
-        f@description[paste0("P", length(colnames(f)), "G")] <- "1"
-        f@description[paste0("P", length(colnames(f)), "E")] <- "0,0"
+        description(f)[paste0("P", length(colnames(f)), "DISPLAY")] <- "LIN" # "LOG"
+        description(f)[paste0("flowCore_$P", length(colnames(f)), "Rmax")] <- 262143
+        description(f)[paste0("flowCore_$P", length(colnames(f)), "Rmin")] <- 0
+        description(f)[paste0("P", length(colnames(f)), "B")] <- "0"
+        description(f)[paste0("P", length(colnames(f)), "R")] <- "262143"
+        description(f)[paste0("P", length(colnames(f)), "N")] <- "Time"
+        description(f)[paste0("P", length(colnames(f)), "G")] <- "1"
+        description(f)[paste0("P", length(colnames(f)), "E")] <- "0,0"
 
 
         Time.loc <- length(colnames(f))
@@ -392,14 +392,14 @@ flowCut <- function(f,
         # return(list(frame=f, ind=NULL, data=resTable, worstChan=NULL))
     }
 
-    range_of_time <- max(f@exprs[,Time.loc])-min(f@exprs[,Time.loc])
+    range_of_time <- max(exprs(f)[,Time.loc])-min(exprs(f)[,Time.loc])
 
     Time_test_passes <- TRUE
 
     if ( range_of_time != 0){
 
         # is the mean and midpoint similar?
-        uniformity_in_time_test <- abs(mean(f@exprs[,Time.loc]) - (range_of_time/2+min(f@exprs[,Time.loc]))) / range_of_time
+        uniformity_in_time_test <- abs(mean(exprs(f)[,Time.loc]) - (range_of_time/2+min(exprs(f)[,Time.loc]))) / range_of_time
 
         # print(uniformity_in_time_test)
 
@@ -423,7 +423,7 @@ flowCut <- function(f,
         # }
 
         # is there a bunch of repeats?
-        uniformity_in_time_test_3 <- max(table(f@exprs[,Time.loc]))
+        uniformity_in_time_test_3 <- max(table(exprs(f)[,Time.loc]))
 
         # print(uniformity_in_time_test_3)
 
@@ -455,7 +455,7 @@ flowCut <- function(f,
     if (!is.null(Channels)){
         if (all(is.character(Channels))){
             Channels <- sort(unique(sapply(seq_len(length(Channels)), function(x) {
-                grep(tolower(Channels[x]), tolower(f@parameters@data$desc))
+                grep(tolower(Channels[x]), tolower(parameters(f)@data$desc))
             })))
         }
 
@@ -467,7 +467,7 @@ flowCut <- function(f,
     f.org <- f
 
     #### Test if the file is monotonic ########################################
-    if ( all(f@exprs[ , Time.loc] == cummax(f@exprs[ , Time.loc])) == FALSE && !IgnoreMonotonic){
+    if ( all(exprs(f)[ , Time.loc] == cummax(exprs(f)[ , Time.loc])) == FALSE && !IgnoreMonotonic){
         message("The flow frame is not monotonically increasing in time.")
         resTable["Is it monotonically increasing in time", ] <- "F"
     } else {
@@ -518,7 +518,7 @@ flowCut <- function(f,
 
     #### Now delete segments that are statistically different #################
     removed.ind <- NULL
-    totalNumSeg <- floor(nrow(f@exprs)/Segment)
+    totalNumSeg <- floor(nrow(exprs(f))/Segment)
 
     if ( length(deletedSegments1) == 0 ){ # If nothing is deleted
         if (Verbose == TRUE){
@@ -556,13 +556,13 @@ flowCut <- function(f,
                 removed.ind <-
                     c(
                         removed.ind,
-                        (Segment*(deletedSegments1[n]-1)+1):nrow(f@exprs)
+                        (Segment*(deletedSegments1[n]-1)+1):nrow(exprs(f))
                     )
             if (deletedSegments1[n] != totalNumSeg)
                 removed.ind <-
                     c(removed.ind, Segment*(deletedSegments1[n]-1)+(seq_len(Segment)))
         }
-        f@exprs <- f@exprs[-removed.ind, ]
+        exprs(f) <- exprs(f)[-removed.ind, ]
     }
     resTable["% of events removed from segments removed", ] <-
         as.character( round(length(removed.ind) / nrow(f.org), digits=4) * 100)
@@ -647,7 +647,7 @@ flowCut <- function(f,
         round(max(meanRangePerc2, na.rm = TRUE), digits=3)
     # use 1 because we want the worst marker before any corrections.
     worstChan <- min(which(meanRangePerc1 == max(meanRangePerc1, na.rm=TRUE)))
-    names.worschan <- f@parameters@data$name[worstChan];
+    names.worschan <- parameters(f)@data$name[worstChan];
     names(names.worschan) <- NULL
     resTable["Worst channel", ] <- names.worschan
     if ( resTable["Max of % of range of means divided by range of data", ] >=
@@ -910,11 +910,11 @@ removeLowDensSections <- function(f, Time.loc, Segment=500, LowDensityRemoval=0.
     #     return(list(frame=f, rem.ind=NULL))
     # }
 
-    minTime <- min(f@exprs[ , Time.loc])
-    maxTime <- max(f@exprs[ , Time.loc])
+    minTime <- min(exprs(f)[ , Time.loc])
+    maxTime <- max(exprs(f)[ , Time.loc])
 
     # Change flow frame data into a density
-    dens.f <- density(f@exprs[ , Time.loc], n= nrow(f), adjust = 0.1)
+    dens.f <- density(exprs(f)[ , Time.loc], n= nrow(f), adjust = 0.1)
     # Extracting indices that has density values below 10% or a user-specified threshold
     low.dens.removeIndLowDens <-
         which(dens.f$y <= LowDensityRemoval*max(dens.f$y))
@@ -965,8 +965,8 @@ removeLowDensSections <- function(f, Time.loc, Segment=500, LowDensityRemoval=0.
             removeIndLowDens <- c(
                 removeIndLowDens,
                 intersect(
-                    which(f@exprs[ , Time.loc] >= range.low.dens[[b2]][1]),
-                    which(f@exprs[ , Time.loc] <= range.low.dens[[b2]][2])
+                    which(exprs(f)[ , Time.loc] >= range.low.dens[[b2]][1]),
+                    which(exprs(f)[ , Time.loc] <= range.low.dens[[b2]][2])
                 )
             )
         }
@@ -1022,7 +1022,7 @@ removeLowDensSections <- function(f, Time.loc, Segment=500, LowDensityRemoval=0.
             if (Verbose == TRUE){
                 cat(paste0("Removing low density ranges ", temp.text, ".\n"))
             }
-            f@exprs <- f@exprs[-removeIndLowDens, ]
+            exprs(f) <- exprs(f)[-removeIndLowDens, ]
         }
     } else { # If there are no indices to be removed
         if (Verbose == TRUE){
@@ -1073,7 +1073,7 @@ calcMeansAndSegmentsRemoved <- function(
     cellDelete <- list()
     storeMeans <- list()
     quantiles  <- list()
-    totalNumSeg <- floor(nrow(f@exprs)/Segment)
+    totalNumSeg <- floor(nrow(exprs(f))/Segment)
 
     maxDistJumped <- rep(0, max(CleanChan.loc))
     # Calcuate all means except for the last segment.
@@ -1081,13 +1081,13 @@ calcMeansAndSegmentsRemoved <- function(
 
 
     for ( k in seq_len(totalNumSeg-1)){
-        temp <- f@exprs[Segment*(k-1)+(seq_len(Segment)), Time.loc]
+        temp <- exprs(f)[Segment*(k-1)+(seq_len(Segment)), Time.loc]
         # timeCentres contains the means of each segment
         timeCentres[k] <- mean(temp)
     }
     # Calculating the mean of the last segment
     k <- totalNumSeg
-    temp <- f@exprs[(Segment*(k-1)+1):nrow(f@exprs), Time.loc]
+    temp <- exprs(f)[(Segment*(k-1)+1):nrow(exprs(f)), Time.loc]
     timeCentres[k] <- mean(temp)
 
     for ( j in CleanChan.loc){
@@ -1095,7 +1095,7 @@ calcMeansAndSegmentsRemoved <- function(
         # Calculating the eight features for each segment except the last one
         #  and store them in the matrix
         for ( k in seq_len(totalNumSeg-1)){
-            temp <- f@exprs[Segment*(k-1)+(seq_len(Segment)), c(j)]
+            temp <- exprs(f)[Segment*(k-1)+(seq_len(Segment)), c(j)]
             segSummary[k, ] <-
                 c(
                 quantile(temp, probs = c(5,20,50,80,95)/100),
@@ -1108,7 +1108,7 @@ calcMeansAndSegmentsRemoved <- function(
         # Calculating the eight features for the last segment and store them
         #  in the matrix
         k <- totalNumSeg
-        temp <- f@exprs[(Segment*(k-1)+1):nrow(f@exprs), c(j)]
+        temp <- exprs(f)[(Segment*(k-1)+1):nrow(exprs(f)), c(j)]
         segSummary[k, ] <-
             c(
             quantile(temp, probs = c(5,20,50,80,95)/100),
@@ -1119,7 +1119,7 @@ calcMeansAndSegmentsRemoved <- function(
             )
 
         storeMeans[[j]] <- segSummary[ ,6]
-        quantiles[[j]] <- quantile(f@exprs[ ,j], probs = c(0,2,98,100)/100)
+        quantiles[[j]] <- quantile(exprs(f)[ ,j], probs = c(0,2,98,100)/100)
         meanRangePerc[j] <-
             (max(storeMeans[[j]]) - min(storeMeans[[j]])) /
             (quantiles[[j]]["98%"]-quantiles[[j]]["2%"])
@@ -1173,7 +1173,7 @@ calcMeansAndSegmentsRemoved <- function(
             }
             if ( Verbose == TRUE) {
                 cat(paste0("The channels that are selected for cutting are: ",
-                    paste0(f@parameters@data$desc[choosenChans],collapse=", "),
+                    paste0(parameters(f)@data$desc[choosenChans],collapse=", "),
                         " (", paste0(choosenChans, collapse=","), ").\n")
                 )
             }
