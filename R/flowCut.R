@@ -327,7 +327,7 @@ flowCut <- function(f, Segment = 500, Channels = NULL, Directory = NULL, FileID 
             " functional as it could be. Consider recording the time", " for future projects.")
         exprs(f) <- cbind(exprs(f), seq_len(nrow(f)))
         colnames(exprs(f))[length(colnames(f)) + 1] <- "Time"
-        parameters(f)@data <- rbind(parameters(f)@data, c("Time", "Time", 262144, 
+        pData(parameters(f)) <- rbind(pData(parameters(f)), c("Time", "Time", 262144, 
             -111, 262143))
         rownames(parameters(f))[length(colnames(f))] <- paste0("$P", length(colnames(f)))
         description(f)[paste0("P", length(colnames(f)), "DISPLAY")] <- "LIN"  # 'LOG'
