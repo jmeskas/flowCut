@@ -206,8 +206,8 @@ flowCut <- function(f,
     }
 
     #### Extracting the location of channels where flowCut will be applied ####
-    t.name <- parameters(f)@data$name
-    t.desc <- parameters(f)@data$desc
+    t.name <- parameters(f)$name
+    t.desc <- parameters(f)$desc
     FSC.loc  <- sort(unique(c(
                     grep("fsc", tolower(t.name)),
                     grep("fs lin", tolower(t.name)),
@@ -238,8 +238,8 @@ flowCut <- function(f,
     t.name[Time.loc], " - ", t.desc[Time.loc], ".")
         Time.loc <- Time.loc[1] # default to take the first.
 
-        parameters(f)@data$name[all.Time.loc[which(all.Time.loc != Time.loc)]] <-
-            paste0(parameters(f)@data$name[all.Time.loc[which(all.Time.loc != Time.loc)]], "-Removed")
+        parameters(f)$name[all.Time.loc[which(all.Time.loc != Time.loc)]] <-
+            paste0(parameters(f)$name[all.Time.loc[which(all.Time.loc != Time.loc)]], "-Removed")
         colnames(exprs(f))[all.Time.loc[which(all.Time.loc != Time.loc)]] <-
             paste0(colnames(exprs(f))[all.Time.loc[which(all.Time.loc != Time.loc)]], "-Removed")
     }
@@ -343,7 +343,7 @@ flowCut <- function(f,
 
     if (length(which(NoVariation == Time.loc)) >= 1){
         message("Your time channel has no variation.")
-        parameters(f)@data$name[Time.loc] <- paste0(parameters(f)@data$name[Time.loc], "-Removed")
+        parameters(f)$name[Time.loc] <- paste0(parameters(f)$name[Time.loc], "-Removed")
         colnames(exprs(f))[Time.loc] <- paste0(colnames(exprs(f))[Time.loc], "-Removed")
         Time.loc <- NULL
 
@@ -352,9 +352,9 @@ flowCut <- function(f,
 
             message("The first time channel will be replaced by the second time channel.")
             Time.loc <- all.Time.loc[-which(all.Time.loc == NoVariation)][1]
-            parameters(f)@data$name[Time.loc] <- "Time"
-            parameters(f)@data$name[all.Time.loc[which(all.Time.loc != Time.loc)]] <-
-            paste0(parameters(f)@data$name[all.Time.loc[which(all.Time.loc != Time.loc)]], "-Removed")
+            parameters(f)$name[Time.loc] <- "Time"
+            parameters(f)$name[all.Time.loc[which(all.Time.loc != Time.loc)]] <-
+            paste0(parameters(f)$name[all.Time.loc[which(all.Time.loc != Time.loc)]], "-Removed")
             colnames(exprs(f))[all.Time.loc[which(all.Time.loc != Time.loc)]] <-
             paste0(colnames(exprs(f))[all.Time.loc[which(all.Time.loc != Time.loc)]], "-Removed")
         }
@@ -372,7 +372,7 @@ flowCut <- function(f,
             parameters(f)@data,
             c("Time", "Time", 262144, -111, 262143)
         )
-        rownames(parameters(f)@data)[length(colnames(f))] <-
+        rownames(parameters(f))[length(colnames(f))] <-
         paste0("$P", length(colnames(f)))
         description(f)[paste0("P", length(colnames(f)), "DISPLAY")] <- "LIN" # "LOG"
         description(f)[paste0("flowCore_$P", length(colnames(f)), "Rmax")] <- 262143
@@ -455,7 +455,7 @@ flowCut <- function(f,
     if (!is.null(Channels)){
         if (all(is.character(Channels))){
             Channels <- sort(unique(sapply(seq_len(length(Channels)), function(x) {
-                grep(tolower(Channels[x]), tolower(parameters(f)@data$desc))
+                grep(tolower(Channels[x]), tolower(parameters(f)$desc))
             })))
         }
 
@@ -647,7 +647,7 @@ flowCut <- function(f,
         round(max(meanRangePerc2, na.rm = TRUE), digits=3)
     # use 1 because we want the worst marker before any corrections.
     worstChan <- min(which(meanRangePerc1 == max(meanRangePerc1, na.rm=TRUE)))
-    names.worschan <- parameters(f)@data$name[worstChan];
+    names.worschan <- parameters(f)$name[worstChan];
     names(names.worschan) <- NULL
     resTable["Worst channel", ] <- names.worschan
     if ( resTable["Max of % of range of means divided by range of data", ] >=
@@ -1173,7 +1173,7 @@ calcMeansAndSegmentsRemoved <- function(
             }
             if ( Verbose == TRUE) {
                 cat(paste0("The channels that are selected for cutting are: ",
-                    paste0(parameters(f)@data$desc[choosenChans],collapse=", "),
+                    paste0(parameters(f)$desc[choosenChans],collapse=", "),
                         " (", paste0(choosenChans, collapse=","), ").\n")
                 )
             }
