@@ -1,6 +1,6 @@
-##################################################################### flowCut: Precise and Accurate Automated Removal of Outlier Events # and
-##################################################################### Flagging of Files Based on Time Versus Fluorescence Analysis # Authors: Justin
-##################################################################### Meskas and Sherrie Wang #
+## flowCut: Precise and Accurate Automated Removal of Outlier Events # and
+## Flagging of Files Based on Time Versus Fluorescence Analysis # Authors: Justin
+## Meskas and Sherrie Wang #
 flowCut <- function(f, Segment = 500, Channels = NULL, Directory = NULL, FileID = NULL, 
     Plot = "Flagged Only", MaxContin = 0.1, MeanOfMeans = 0.13, MaxOfMeans = 0.15, 
     MaxValleyHgt = 0.1, MaxPercCut = 0.3, LowDensityRemoval = 0.1, GateLineForce = NULL, 
@@ -50,7 +50,7 @@ flowCut <- function(f, Segment = 500, Channels = NULL, Directory = NULL, FileID 
     
     if (nrow(f) <= 3 * Segment) {
         # deGate requires count.lim = 3
-        message(paste0("Either your Segment size is too large or your number", " of cells is too small."))
+        message("Either your Segment size is too large or your number", " of cells is too small.")
         resTable["Has the file passed", ] <- paste0("Either your", "Segment size is too large or your number of cells is too small.")
         return(list(frame = f, ind = NULL, data = resTable, worstChan = NULL))
     }
@@ -65,7 +65,7 @@ flowCut <- function(f, Segment = 500, Channels = NULL, Directory = NULL, FileID 
         return(list(frame = f, ind = NULL, data = resTable, worstChan = NULL))
     }
     if (!(Plot == "None" || Plot == "All" || Plot == "Flagged Only")) {
-        message(paste0("Plot must be a character", "with one of the following", " options: 'None', 'All', or 'Flagged Only'."))
+        message("Plot must be a character", "with one of the following", " options: 'None', 'All', or 'Flagged Only'.")
         resTable["Has the file passed", ] <- paste0("Plot must be a character", " with one of the following options:", 
             " 'None', 'All', or 'Flagged Only'.")
         return(list(frame = f, ind = NULL, data = resTable, worstChan = NULL))
@@ -212,7 +212,7 @@ flowCut <- function(f, Segment = 500, Channels = NULL, Directory = NULL, FileID 
     }
     names(NoVariation) <- NULL
     if (length(NoVariation) >= 1 && Verbose == TRUE) {
-        message(paste0("Channels ", paste0(NoVariation, collapse = ", "), " have no variation and have been removed from the analysis."))
+        message("Channels ", paste0(NoVariation, collapse = ", "), " have no variation and have been removed from the analysis.")
     }
     
     
@@ -220,7 +220,7 @@ flowCut <- function(f, Segment = 500, Channels = NULL, Directory = NULL, FileID 
     if (!is.null(MonotonicFix)) {
         time.data <- exprs(f)[, Time.loc]
         if (all(time.data == cummax(time.data)) == FALSE) {
-            message(paste0("Fixing file ", FileID, " for the monotonic time issue."))
+            message("Fixing file ", FileID, " for the monotonic time issue.")
             
             time.diff <- time.data[2:length(time.data)] - time.data[seq_len(length(time.data) - 
                 1)]
@@ -234,7 +234,7 @@ flowCut <- function(f, Segment = 500, Channels = NULL, Directory = NULL, FileID 
                   time.data[idx] <- time.data[idx] + time.diffs[mono.ind]
                 }
             } else {
-                message(paste0("All of file ", FileID, "'s monotonic issues are larger than MonotonicFix and were not adjusted."))
+                message("All of file ", FileID, "'s monotonic issues are larger than MonotonicFix and were not adjusted.")
             }
             
             if (Plot == "All" || (Plot == "Flagged Only")) {
@@ -295,7 +295,7 @@ flowCut <- function(f, Segment = 500, Channels = NULL, Directory = NULL, FileID 
     }
     
     if (length(MonotonicWithTime) >= 1 && Verbose == TRUE) {
-        message(paste0("Channels ", paste0(MonotonicWithTime, collapse = ", "), " are monotonically increasing in time and have been removed from the analysis."))
+        message("Channels ", paste0(MonotonicWithTime, collapse = ", "), " are monotonically increasing in time and have been removed from the analysis.")
     }
     
     
