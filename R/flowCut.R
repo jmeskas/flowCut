@@ -606,7 +606,7 @@ flowCut <- function(f,
     for ( j in CleanChan.loc ){
         temp.vect <- rep(0, length(storeMeans2[[j]])-1)
       
-        temp.vect <- abs(diff(storeMeans[[j]])) / (quantiles[[j]]["98%"] - quantiles[[j]]["2%"])
+        temp.vect <- abs(diff(storeMeans2[[j]])) / (quantiles1[[j]]["98%"] - quantiles1[[j]]["2%"])
       
         maxDistJumped[j] <- max(temp.vect)
     }
