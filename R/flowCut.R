@@ -221,8 +221,8 @@ flowCut <- function(f,
     names( SSC.loc) <- NULL
 
     Time.loc <- sort(unique(c(grep("time",  tolower(t.name)),
-    grep("time",  tolower(t.desc)),
-    grep("hdr-t", tolower(t.name))
+                              grep("time",  tolower(t.desc)),
+                              grep("hdr-t", tolower(t.name))
                 )))
 
     all.Time.loc <- Time.loc
@@ -233,9 +233,9 @@ flowCut <- function(f,
     #
 
     if (length(all.Time.loc) >= 2){ # Multiple time channels
-        message(paste0("This file has ", length(all.Time.loc),
+        message("This file has ", length(all.Time.loc),
     " time channels. flowCut has selected to use ",
-    t.name[Time.loc], " - ", t.desc[Time.loc], "."))
+    t.name[Time.loc], " - ", t.desc[Time.loc], ".")
         Time.loc <- Time.loc[1] # default to take the first.
 
         f@parameters@data$name[all.Time.loc[which(all.Time.loc != Time.loc)]] <-
@@ -245,14 +245,7 @@ flowCut <- function(f,
     }
 
     Extra.loc <-  c(
-        grep( "pulse",           tolower(t.name)),
-        grep( "width",           tolower(t.name)),
-        grep( "length",          tolower(t.name)),
-        grep( "count",           tolower(t.name)),
-        grep( "sort classifier", tolower(t.name)),
-        grep( "event",           tolower(t.name)),
-        grep( "phenograph",      tolower(t.name)),
-        grep( "barcode",         tolower(t.name))
+        grep( "pulse|width|length|count|sort classifier|event|phenograph|barcode", tolower(t.name))
     )
     names(Extra.loc) <- NULL
     Extra.loc <- unique(Extra.loc)
@@ -285,9 +278,10 @@ flowCut <- function(f,
             diff.ind.all    <- which(time.diff < 0)
 
             if (length(diff.ind.strong) > 0){
-                for (mono.ind in seq_len(length(diff.ind.strong))){
-                        time.data[(diff.ind.strong[mono.ind]+1):length(time.data)] <- 
-                            time.data[(diff.ind.strong[mono.ind]+1):length(time.data)] + abs(time.diff[diff.ind.strong[mono.ind]])
+                time.diffs <- abs(time.diff[diff.ind.strong])
+                for (mono.ind in diff.ind.strong){  
+                       idx <- seq(mono.ind + 1, length(time.data))
+                       time.data[idx] <- time.data[idx] + time.diffs[mono.ind]
                 }
             } else {
                 message(paste0("All of file ", FileID, 
@@ -335,18 +329,19 @@ flowCut <- function(f,
     names(MonotonicWithTime) <- NULL
     MonotonicWithTime <- sort(unique(MonotonicWithTime))
 
-       if ( length(which(match(all.Time.loc, MonotonicWithTime, nomatch=0) >= 1)) >= 1){
-        MonotonicWithTime <- MonotonicWithTime[-match(all.Time.loc, MonotonicWithTime, nomatch=0)]
+    test <- match(all.Time.loc, MonotonicWithTime, nomatch=0)
+    if ( any(test >= 1) ) {
+        MonotonicWithTime <- MonotonicWithTime[-test]
     }
 
-       if (length(MonotonicWithTime) >= 1 && Verbose == TRUE ){
+    if (length(MonotonicWithTime) >= 1 && Verbose == TRUE ){
         message(paste0("Channels ", paste0(MonotonicWithTime, collapse = ", "), " are monotonically increasing in time and have been removed from the analysis."))
     }
 
 
 
 
-      if(length(which(NoVariation == Time.loc)) >= 1){
+    if (length(which(NoVariation == Time.loc)) >= 1){
         message("Your time channel has no variation.")
         f@parameters@data$name[Time.loc] <- paste0(f@parameters@data$name[Time.loc], "-Removed")
         colnames(f@exprs)[Time.loc] <- paste0(colnames(f@exprs)[Time.loc], "-Removed")
@@ -610,10 +605,9 @@ flowCut <- function(f,
     maxDistJumped <- rep(0, max(CleanChan.loc))
     for ( j in CleanChan.loc ){
         temp.vect <- rep(0, length(storeMeans2[[j]])-1)
-        for ( l in seq_len(length(storeMeans2[[j]])-1) ){
-            temp.vect[l] <- abs(storeMeans2[[j]][l]-storeMeans2[[j]][[l+1]]) /
-                (quantiles1[[j]]["98%"]-quantiles1[[j]]["2%"])
-        }
+      
+        temp.vect <- abs(diff(storeMeans[[j]])) / (quantiles[[j]]["98%"] - quantiles[[j]]["2%"])
+      
         maxDistJumped[j] <- max(temp.vect)
     }
     resTable["Largest continuous jump", ] <-
