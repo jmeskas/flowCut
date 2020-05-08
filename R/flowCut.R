@@ -189,11 +189,9 @@ flowCut <- function(f, Segment = 500, Channels = NULL, Directory = NULL, FileID 
         message("This file has ", length(all.Time.loc), " time channels. flowCut has selected to use ", 
             t.name[Time.loc], " - ", t.desc[Time.loc], ".")
         Time.loc <- Time.loc[1]  # default to take the first.
-        
-        parameters(f)$name[all.Time.loc[which(all.Time.loc != Time.loc)]] <- paste0(parameters(f)$name[all.Time.loc[which(all.Time.loc != 
-            Time.loc)]], "-Removed")
-        colnames(exprs(f))[all.Time.loc[which(all.Time.loc != Time.loc)]] <- paste0(colnames(exprs(f))[all.Time.loc[which(all.Time.loc != 
-            Time.loc)]], "-Removed")
+        nonlap.loc <- all.Time.loc[which(all.Time.loc != Time.loc)]
+        parameters(f)$name[nonlap.loc] <- paste0(parameters(f)$name[nonlap.loc], "-Removed")
+        colnames(exprs(f))[nonlap.loc] <- paste0(colnames(exprs(f))[nonlap.loc], "-Removed")
     }
     
     Extra.loc <- c(grep("pulse|width|length|count|sort classifier|event|phenograph|barcode", 
@@ -314,10 +312,9 @@ flowCut <- function(f, Segment = 500, Channels = NULL, Directory = NULL, FileID 
             message("The first time channel will be replaced by the second time channel.")
             Time.loc <- all.Time.loc[-which(all.Time.loc == NoVariation)][1]
             parameters(f)$name[Time.loc] <- "Time"
-            parameters(f)$name[all.Time.loc[which(all.Time.loc != Time.loc)]] <- paste0(parameters(f)$name[all.Time.loc[which(all.Time.loc != 
-                Time.loc)]], "-Removed")
-            colnames(exprs(f))[all.Time.loc[which(all.Time.loc != Time.loc)]] <- paste0(colnames(exprs(f))[all.Time.loc[which(all.Time.loc != 
-                Time.loc)]], "-Removed")
+            nonlap.loc <- all.Time.loc[which(all.Time.loc != Time.loc)]
+            parameters(f)$name[nonlap.loc] <- paste0(parameters(f)$name[nonlap.loc], "-Removed")
+            colnames(exprs(f))[nonlap.loc] <- paste0(colnames(exprs(f))[nonlap.loc], "-Removed")
         }
     }
     
@@ -786,14 +783,13 @@ flowCut <- function(f, Segment = 500, Channels = NULL, Directory = NULL, FileID 
 }
 
 
-
-################################################ Remove sections that have a very low density # The sections that have a density
-################################################ of less than LowDensityRemoval (defaulted at 10%) of the maximum density are
-################################################ removed.  An additional 2.5% of the range of these low density regions on
-################################################ either side is also removed because it is very common to have a burst of events
-################################################ before or after these low density sections.  Because the density functions
-################################################ indices do not match with the flowFrames indices, density function indices need
-################################################ to convert to flowFrame indices.
+## Remove sections that have a very low density 
+## The sections that have a density of less than LowDensityRemoval (defaulted at 10%) 
+## of the maximum density are removed.  An additional 2.5% of the range of these low density regions on
+## either side is also removed because it is very common to have a burst of events
+## before or after these low density sections.  Because the density functions
+## indices do not match with the flowFrames indices, density function indices need
+## to convert to flowFrame indices.
 removeLowDensSections <- function(f, Time.loc, Segment = 500, LowDensityRemoval = 0.1, 
     Verbose = FALSE) {
     
@@ -854,9 +850,10 @@ removeLowDensSections <- function(f, Time.loc, Segment = 500, LowDensityRemoval 
         
         # Change time coordinates to flowframe indices, removeIndLowDens contains
         # flowframe indices to be removed
+        time_pointsloc <- which(exprs(f)[, Time.loc]
         for (b2 in seq_len(length(range.low.dens))) {
-            removeIndLowDens <- c(removeIndLowDens, intersect(which(exprs(f)[, Time.loc] >= 
-                range.low.dens[[b2]][1]), which(exprs(f)[, Time.loc] <= range.low.dens[[b2]][2])))
+            removeIndLowDens <- c(removeIndLowDens, intersect(time_pointsloc >= 
+                range.low.dens[[b2]][1]), time_pointsloc <= range.low.dens[[b2]][2])))
         }
         removeIndLowDens <- unique(removeIndLowDens)
         
@@ -924,11 +921,11 @@ removeLowDensSections <- function(f, Time.loc, Segment = 500, LowDensityRemoval 
 
 
 
-###################################################### Calculate means and which segments will be removed # All events are broken down
-###################################################### into segments for analysis Eight measures of each segment (mean, median, 5th,
-###################################################### 20th, 80th and 95th percentile, second moment(variation) and third moment
-###################################################### (skewness)) are calculated. The regions where these eight measures are
-###################################################### significantly different from the rest will be removed.
+## Calculate means and which segments will be removed 
+## All events are broken down into segments for analysis Eight measures of each segment (mean, median, 5th,
+## 20th, 80th and 95th percentile, second moment(variation) and third moment
+## (skewness)) are calculated. The regions where these eight measures are
+## significantly different from the rest will be removed.
 calcMeansAndSegmentsRemoved <- function(f, Segment, CleanChan.loc, FirstOrSecond, 
     MaxValleyHgt, MaxPercCut, MaxContin, MeanOfMeans, MaxOfMeans, GateLineForce, 
     UseOnlyWorstChannels, AmountMeanRangeKeep, AmountMeanSDKeep, RemoveMultiSD, AlwaysClean, 
@@ -1001,10 +998,7 @@ calcMeansAndSegmentsRemoved <- function(f, Segment, CleanChan.loc, FirstOrSecond
             cellDelete[[j]] <- cellDeleteExpo
             
             temp.vect <- rep(0, length(storeMeans[[j]]) - 1)
-            for (l in seq_len(length(storeMeans[[j]]) - 1)) {
-                temp.vect[l] <- abs(storeMeans[[j]][l] - storeMeans[[j]][[l + 1]])/(quantiles[[j]]["98%"] - 
-                  quantiles[[j]]["2%"])
-            }
+            temp.vect <- abs(diff(storeMeans[[j]])) / (quantiles[[j]]["98%"] - quantiles[[j]]["2%"])
             maxDistJumped[j] <- max(temp.vect)
         }
     }  # End of for-loop
