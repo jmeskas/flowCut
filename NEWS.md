@@ -29,4 +29,5 @@ BUG FIXES
 - (v 0.99.23) changed codes formatting
 - (v 0.99.24) changed codes formatting
 - (v 0.99.25) More formatting and code optimization edits, changed NEWS to NEWS.md
+- (v 0.99.26) resolved installation issues
 
