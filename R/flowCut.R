@@ -850,10 +850,10 @@ removeLowDensSections <- function(f, Time.loc, Segment = 500, LowDensityRemoval 
         
         # Change time coordinates to flowframe indices, removeIndLowDens contains
         # flowframe indices to be removed
-        time_pointsloc <- which(exprs(f)[, Time.loc]
+        time_pointsloc <- exprs(f)[, Time.loc]
         for (b2 in seq_len(length(range.low.dens))) {
-            removeIndLowDens <- c(removeIndLowDens, intersect(time_pointsloc >= 
-                range.low.dens[[b2]][1]), time_pointsloc <= range.low.dens[[b2]][2])))
+            removeIndLowDens <- c(removeIndLowDens, intersect(which(time_pointsloc >= 
+                range.low.dens[[b2]][1]), which(time_pointsloc <= range.low.dens[[b2]][2])))
         }
         removeIndLowDens <- unique(removeIndLowDens)
         
