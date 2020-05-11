@@ -5,9 +5,9 @@ email: justinmeskas@gmail.com, swang@bccrc.ca
 date: May 2020
 output: rmarkdown::html_vignette
 vignette: >
+  \usepackage[utf8]{inputenc}
   %\VignetteIndexEntry{ _**flowCut**_: Precise and Accurate Automated Removal of Outlier Events and Flagging of Files Based on Time Versus Fluorescence Analysis}
   %\VignetteEngine{knitr::rmarkdown}
-  \usepackage[utf8]{inputenc}
 ---
 
 
