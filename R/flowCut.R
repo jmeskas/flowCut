@@ -229,7 +229,7 @@ flowCut <- function(f, Segment = 500, Channels = NULL, Directory = NULL, FileID 
                 time.diffs <- abs(time.diff[diff.ind.strong])
                 for (mono.ind in diff.ind.strong) {
                   idx <- seq(mono.ind + 1, length(time.data))
-                  time.data[idx] <- time.data[idx] + time.diffs[mono.ind]
+                  time.data[idx] <- time.data[idx] + time.diffs[which(mono.ind == diff.ind.strong)]
                 }
             } else {
                 message("All of file ", FileID, "'s monotonic issues are larger than MonotonicFix and were not adjusted.")

@@ -2,8 +2,8 @@ Package: flowCut
 Type: Package
 Title: Precise and Accurate Automated Removal of Outlier Events and
         Flagging of Files Based on Time Versus Fluorescence Analysis
-Version: 0.99.26
-Date: 2020-04-07
+Version: 0.99.27
+Date: 2020-07-15
 Authors@R: c(person("Justin","Meskas", role=c("cre","aut"), email="justinmeskas@gmail.com"),
                       person("Sherrie","Wang", role = "aut"))
 Depends: R (>= 3.4), flowCore
