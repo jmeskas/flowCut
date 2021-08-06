@@ -7,7 +7,7 @@ flowCut <- function(f, Segment = 500, Channels = NULL, Directory = NULL, FileID 
     UseOnlyWorstChannels = FALSE, AmountMeanRangeKeep = 1, AmountMeanSDKeep = 2, 
     PrintToConsole = FALSE, AllowFlaggedRerun = FALSE, UseCairo = FALSE, UnifTimeCheck = 0.22, 
     RemoveMultiSD = 7, AlwaysClean = FALSE, IgnoreMonotonic = FALSE, MonotonicFix = NULL, 
-    Verbose = FALSE) {
+    Measures = c(1:8), Verbose = FALSE) {
     
     start0 <- Sys.time()
     resTable <- matrix("", 17, 1)
@@ -159,6 +159,21 @@ flowCut <- function(f, Segment = 500, Channels = NULL, Directory = NULL, FileID 
     if (!is.null(MonotonicFix) && (!is.numeric(MonotonicFix) || (MonotonicFix < 0))) {
         message("MonotonicFix must be NULL or a number greater than or equal to 0.")
         resTable["Has the file passed", ] <- "MonotonicFix must be NULL or a number greater than or equal to 0."
+        return(list(frame = f, ind = NULL, data = resTable, worstChan = NULL))
+    }
+    if (!is.numeric(Measures)) {
+        message("Measures must be a numeric.")
+        resTable["Has the file passed", ] <- "Measures must be numeric."
+        return(list(frame = f, ind = NULL, data = resTable, worstChan = NULL))
+    }
+    if (max(Measures) > 8 || min(Measures) < 1 ) {
+        message("Measures must be between 1 and 8.")
+        resTable["Has the file passed", ] <- "Measures must be between 1 and 8."
+        return(list(frame = f, ind = NULL, data = resTable, worstChan = NULL))
+    }
+    if (any(Measures%%1 != 0)) {
+        message("Measures must be integers.")
+        resTable["Has the file passed", ] <- "Measures must be integers."
         return(list(frame = f, ind = NULL, data = resTable, worstChan = NULL))
     }
     if (!is.logical(Verbose)) {
@@ -445,7 +460,7 @@ flowCut <- function(f, Segment = 500, Channels = NULL, Directory = NULL, FileID 
         GateLineForce = GateLineForce, UseOnlyWorstChannels = UseOnlyWorstChannels, 
         AmountMeanRangeKeep = AmountMeanRangeKeep, AmountMeanSDKeep = AmountMeanSDKeep, 
         RemoveMultiSD = RemoveMultiSD, AlwaysClean = AlwaysClean, Verbose = Verbose, 
-        Time.loc = Time.loc)
+        Measures = Measures, Time.loc = Time.loc)
     
     deletedSegments1 <- res.temp$deletedSegments
     quantiles1 <- res.temp$quantiles
@@ -509,7 +524,7 @@ flowCut <- function(f, Segment = 500, Channels = NULL, Directory = NULL, FileID 
         GateLineForce = GateLineForce, UseOnlyWorstChannels = UseOnlyWorstChannels, 
         AmountMeanRangeKeep = AmountMeanRangeKeep, AmountMeanSDKeep = AmountMeanSDKeep, 
         RemoveMultiSD = RemoveMultiSD, AlwaysClean = AlwaysClean, Verbose = Verbose, 
-        Time.loc = Time.loc)
+        Measures = Measures, Time.loc = Time.loc)
     quantiles2 <- res.temp$quantiles
     storeMeans2 <- res.temp$storeMeans
     meanRangePerc2 <- res.temp$meanRangePerc
@@ -741,7 +756,7 @@ flowCut <- function(f, Segment = 500, Channels = NULL, Directory = NULL, FileID 
             AmountMeanRangeKeep = AmountMeanRangeKeep, PrintToConsole = PrintToConsole, 
             AllowFlaggedRerun = pngName, UseCairo = UseCairo, UnifTimeCheck = UnifTimeCheck, 
             RemoveMultiSD = RemoveMultiSD, AlwaysClean = AlwaysClean, IgnoreMonotonic = IgnoreMonotonic, 
-            MonotonicFix = MonotonicFix, Verbose = Verbose)
+            MonotonicFix = MonotonicFix, Measures = Measures, Verbose = Verbose)
         if (res_flowCut$data["Has the file passed", ] == "Time test(s) failed.") {
             message("Time test(s) failed on the second run. Returning results from the first run for flowCut.")
             return(list(frame = f, ind = to.be.removed, data = resTable, worstChan = worstChan))
@@ -929,7 +944,7 @@ removeLowDensSections <- function(f, Time.loc, Segment = 500, LowDensityRemoval 
 calcMeansAndSegmentsRemoved <- function(f, Segment, CleanChan.loc, FirstOrSecond, 
     MaxValleyHgt, MaxPercCut, MaxContin, MeanOfMeans, MaxOfMeans, GateLineForce, 
     UseOnlyWorstChannels, AmountMeanRangeKeep, AmountMeanSDKeep, RemoveMultiSD, AlwaysClean, 
-    Verbose, Time.loc) {
+    Verbose, Measures, Time.loc) {
     
     # f is the flow frame FirstOrSecond - parameter used to determine what
     # calculation or process will be performed
@@ -983,6 +998,7 @@ calcMeansAndSegmentsRemoved <- function(f, Segment, CleanChan.loc, FirstOrSecond
             quantiles[[j]]["2%"])
         
         if (FirstOrSecond == "First") {
+            # calculate Z-scores
             segSummary <- rbind(sapply(seq_len(ncol(segSummary)), function(x) {
                 (segSummary[, x] - mean(segSummary[, x]))/sd(segSummary[, x])
             }))
@@ -993,7 +1009,7 @@ calcMeansAndSegmentsRemoved <- function(f, Segment, CleanChan.loc, FirstOrSecond
             
             # Sum up each row of the resulting matrix
             cellDeleteExpo <- sapply(seq_len(nrow(cellDeleteExpo)), function(x) {
-                sum(cellDeleteExpo[x, ])
+                sum(cellDeleteExpo[x, Measures]) # sum across a subset of the measures.
             })
             cellDelete[[j]] <- cellDeleteExpo
             
@@ -1033,8 +1049,10 @@ calcMeansAndSegmentsRemoved <- function(f, Segment, CleanChan.loc, FirstOrSecond
             cellDelete <- cellDelete[choosenChans]
         }
         
+        # matrix of Z-scores, segments vs channels (measures summed previously)
         cellDelete1 <- do.call(cbind, cellDelete)
         
+        # vector of Z-scores, one for each segment
         cellDelete2 <- NULL
         for (m in seq_len(length(cellDelete1[, 1]))) {
             cellDelete2[m] <- sum(cellDelete1[m, ])
@@ -1057,7 +1075,7 @@ calcMeansAndSegmentsRemoved <- function(f, Segment, CleanChan.loc, FirstOrSecond
             typeOfGating <- paste0(typeOfGating, paste0(RemoveMultiSD, "SD"))
             cellDelete2.org <- cellDelete2
         } else {
-            # Finding outliers using by plotting density of the 8 measures, the index of
+            # Finding outliers by plotting density of the 8 measures, the index of
             # cells that have 8 measures significantly different than the rest will be
             # returned
             peaks_info <- getPeaks(cellDelete2, tinypeak.removal = 0.1)

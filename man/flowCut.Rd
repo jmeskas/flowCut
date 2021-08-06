@@ -35,6 +35,7 @@ flowCut (f,
         AlwaysClean=FALSE, 
         IgnoreMonotonic=FALSE, 
         MonotonicFix=NULL, 
+        Measures="All",
         Verbose=FALSE)
 }
 \arguments{
@@ -110,6 +111,9 @@ flowCut (f,
     \item{MonotonicFix}{
     A numeric value greater or equal to 0 used to fix the monontonic issues in time. If NULL, the default, the fix is skipped. The value is how large of a jump in backwards time that is allowed, anything larger will be corrected. Suggestion to use 1. Set to 0 to fix any monotonic in time issues for the entire file. See figures inside the folder "/Mono/" which is inside "Directory" (or your current directory if "Directory" is NULL). Plots will only be plotted if "Plot=All" or "Plot=Flagged Only".
     }   
+    \item{Measures}{
+    A numeric vector that determines which measures are used when calculating which segments are statistically different. The default is c(1:8). Try any subset of c(1:8) for the desired subset of 5th and 20th percentiles, median, 80th and 95th percentiles, mean, variance and skewness, respectively. 
+    }
     \item{Verbose}{
     A logical value that dictates if computational information is printed while the code is running. The default is FALSE.
     }

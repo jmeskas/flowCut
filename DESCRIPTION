@@ -2,8 +2,8 @@ Package: flowCut
 Type: Package
 Title: Precise and Accurate Automated Removal of Outlier Events and
         Flagging of Files Based on Time Versus Fluorescence Analysis
-Version: 0.99.27
-Date: 2020-07-15
+Version: 1.3.1
+Date: 2021-07-29
 Authors@R: c(person("Justin","Meskas", role=c("cre","aut"), email="justinmeskas@gmail.com"),
                       person("Sherrie","Wang", role = "aut"))
 Depends: R (>= 3.4), flowCore
@@ -13,7 +13,7 @@ Description: Common techinical complications such as clogging can result in spur
              flowCut is designed to detect and remove technical artifacts from your data by removing segments that 
              show statistical differences from other segments.
 VignetteBuilder: knitr
-Suggests: RUnit, BiocGenerics, knitr
+Suggests: RUnit, BiocGenerics, knitr, markdown
 biocViews: FlowCytometry, Preprocessing, QualityControl,
         CellBasedAssays
 License: Artistic-2.0
