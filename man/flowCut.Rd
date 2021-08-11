@@ -35,7 +35,7 @@ flowCut (f,
         AlwaysClean=FALSE, 
         IgnoreMonotonic=FALSE, 
         MonotonicFix=NULL, 
-        Measures="All",
+        Measures=c(1:8),
         Verbose=FALSE)
 }
 \arguments{

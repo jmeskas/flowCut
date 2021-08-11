@@ -13,7 +13,7 @@ Description: Common techinical complications such as clogging can result in spur
              flowCut is designed to detect and remove technical artifacts from your data by removing segments that 
              show statistical differences from other segments.
 VignetteBuilder: knitr
-Suggests: RUnit, BiocGenerics, knitr, markdown
+Suggests: RUnit, BiocGenerics, knitr, markdown, rmarkdown
 biocViews: FlowCytometry, Preprocessing, QualityControl,
         CellBasedAssays
 License: Artistic-2.0
