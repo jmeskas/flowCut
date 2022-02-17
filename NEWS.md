@@ -14,6 +14,7 @@ NEW FEATURES
 - (v. 0.99.17) Changed license.
 - (v. 0.99.18) Added monotonic time fix option.
 - (v. 1.3.1) Added option to choose a subset of measures. Updated vignette.
+- (v. 1.5.1) Changed default of AllowFlaggedRerun from FALSE to TRUE.
 
 
 BUG FIXES

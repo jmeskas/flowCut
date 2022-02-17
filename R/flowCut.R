@@ -5,7 +5,7 @@ flowCut <- function(f, Segment = 500, Channels = NULL, Directory = NULL, FileID 
     Plot = "Flagged Only", MaxContin = 0.1, MeanOfMeans = 0.13, MaxOfMeans = 0.15, 
     MaxValleyHgt = 0.1, MaxPercCut = 0.3, LowDensityRemoval = 0.1, GateLineForce = NULL, 
     UseOnlyWorstChannels = FALSE, AmountMeanRangeKeep = 1, AmountMeanSDKeep = 2, 
-    PrintToConsole = FALSE, AllowFlaggedRerun = FALSE, UseCairo = FALSE, UnifTimeCheck = 0.22, 
+    PrintToConsole = FALSE, AllowFlaggedRerun = TRUE, UseCairo = FALSE, UnifTimeCheck = 0.22, 
     RemoveMultiSD = 7, AlwaysClean = FALSE, IgnoreMonotonic = FALSE, MonotonicFix = NULL, 
     Measures = c(1:8), Verbose = FALSE) {
     

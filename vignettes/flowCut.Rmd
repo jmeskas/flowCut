@@ -101,7 +101,7 @@ The _MaxValleyHgt_ parameter plays a role with calculating the threshold on the 
 For example, if we set _MaxValleyHgt_ to 0.01 we have:
 
 ```{r, label=MaxValleyHgt0p01_Image, fig=FALSE, echo=TRUE, height=22, width=22, keep.source=TRUE}
-res_flowCut <- flowCut(flowCutData[[2]], FileID=2, Plot ="All", MaxValleyHgt = 0.01)
+res_flowCut <- flowCut(flowCutData[[2]], FileID=2, Plot ="All", AllowFlaggedRerun = FALSE, MaxValleyHgt = 0.01)
 ```
 
 ![Figure 3: Running _**flowCut**_ with _MaxValleyHgt_ changed to 0.01.\label{fig:MaxValleyHgt0p01}](flowCut/2_Flagged_TFTF.png){width=100%}
@@ -119,7 +119,7 @@ res_flowCut <- flowCut(flowCutData[[2]], FileID=3, Plot ="All", MaxValleyHgt = 0
 Sometimes we get files that show a distinctive separation of good and undesired segments, as shown in the 'Density of summed measures' sub-plot in Figure 5. We first show _MaxPercCut_ changed to 0.15 as a demonstration:
 
 ```{r, label=MaxPercCut0p15_Image, fig=FALSE, echo=TRUE, height=22, width=22, keep.source=TRUE}
-res_flowCut <- flowCut(flowCutData[[3]], FileID=4, Plot ="All", MaxPercCut = 0.15)
+res_flowCut <- flowCut(flowCutData[[3]], FileID=4, Plot ="All", AllowFlaggedRerun = FALSE, MaxPercCut = 0.15)
 ```
 
 ![Figure 5: Running _**flowCut**_ with _MaxPercCut_ changed to 0.15.\label{fig:MaxPercCut0p15}](flowCut/4_Flagged_TTFF.png){width=100%}
@@ -168,7 +168,7 @@ In other cases, some files may contain two or more groups of outlier events, whe
 An example of when both the above parameters are required is shown in Figure 8, but first showing results of _**flowCut**_ with default values.
 
 ```{r, label=AllowFlaggedRerun_UseOnlyWorstChannels_Image_1, fig=FALSE, echo=TRUE, height=22, width=22, keep.source=TRUE}
-res_flowCut <- flowCut(flowCutData[[4]], FileID=7, Plot ="All")
+res_flowCut <- flowCut(flowCutData[[4]], FileID=7, AllowFlaggedRerun = FALSE, Plot ="All")
 ```
 
 ![Figure 8: Running _**flowCut**_ with the default values.\label{fig:AllowFlaggedRerun_UseOnlyWorstChannels}](flowCut/7_Flagged_TTTF.png){width=100%}

@@ -28,7 +28,7 @@ flowCut (f,
         AmountMeanRangeKeep=1, 
         AmountMeanSDKeep=2,
         PrintToConsole=FALSE, 
-        AllowFlaggedRerun=FALSE, 
+        AllowFlaggedRerun=TRUE, 
         UseCairo=FALSE,
         UnifTimeCheck=0.22, 
         RemoveMultiSD=7,
@@ -91,7 +91,7 @@ flowCut (f,
         A logical value that dictates if the figure is printed to the console or in the current directory. If no figure is desired, please see the Plot argument. The default is FALSE.
     }
     \item{AllowFlaggedRerun}{
-        A logical value that dictates if flowCut will run a second time. However, this only occurs if the file was flagged on the first run. The default is FALSE.
+        A logical value that dictates if flowCut will run a second time. However, this only occurs if the file was flagged on the first run. The default is TRUE.
     }
     \item{UseCairo}{
         A logical value that dictates if the Cairo package should be used to save the png file. If FALSE, png() in grDevices will be used. Note that some operating systems might only work with one or the other. Default is FALSE.
@@ -138,14 +138,14 @@ res_flowCut <- flowCut(flowCutData[[1]], Plot="All")
 # See plot in working directory/flowCut
 
 # Here is an example with decreasing the MaxValleyHgt parameter, which causes a flag.
-res_flowCut <- flowCut(flowCutData[[2]], MaxValleyHgt = 0.01, Verbose = TRUE, Plot="All")
+res_flowCut <- flowCut(flowCutData[[2]], MaxValleyHgt = 0.01, Verbose = TRUE, AllowFlaggedRerun = FALSE, Plot="All")
 res_flowCut$data
 
 # Compare with:
-res_flowCut <- flowCut(flowCutData[[2]], Verbose = TRUE, Plot="All")
+res_flowCut <- flowCut(flowCutData[[2]], Verbose = TRUE,  AllowFlaggedRerun = FALSE, Plot="All")
 
 # Here is an example with decreasing the MaxPercCut parameter, which causes a flag.
-res_flowCut <- flowCut(flowCutData[[3]], MaxPercCut = 0.15, Verbose = TRUE)
+res_flowCut <- flowCut(flowCutData[[3]], MaxPercCut = 0.15,  AllowFlaggedRerun = FALSE, Verbose = TRUE)
 res_flowCut$data
 
 # Compare with:
