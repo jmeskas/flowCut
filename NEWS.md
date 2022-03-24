@@ -33,4 +33,5 @@ BUG FIXES
 - (v 0.99.25) More formatting and code optimization edits, changed NEWS to NEWS.md
 - (v 0.99.26) resolved installation issues
 - (v 0.99.27) Small bug fix with monotonically increasing channels.
+- (v 1.5.2) Small bug fix with time channel addition.
 
