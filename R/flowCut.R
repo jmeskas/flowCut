@@ -337,10 +337,12 @@ flowCut <- function(f, Segment = 500, Channels = NULL, Directory = NULL, FileID 
     if (length(Time.loc) == 0) {
         message("Your data does not have a time channel. flowCut will", " create one, but now flowCut will not be as fully", 
             " functional as it could be. Consider recording the time", " for future projects.")
-        exprs(f) <- cbind(exprs(f), seq_len(nrow(f)))
-        colnames(exprs(f))[length(colnames(f)) + 1] <- "Time"
-        pData(parameters(f)) <- rbind(pData(parameters(f)), c("Time", "Time", 262144, 
-            -111, 262143))
+        time_col <- matrix(seq_len(nrow(f)), ncol=1)
+        colnames(time_col) <- "Time"
+        f <- fr_append_cols(f, time_col)
+        pd <- pData(parameters(f))
+        pd[pd$name == "Time", c("range", "minRange", "maxRange")] <- c(262144, -144, 262143)
+        pData(parameters(f)) <- pd
         rownames(parameters(f))[length(colnames(f))] <- paste0("$P", length(colnames(f)))
         description(f)[paste0("P", length(colnames(f)), "DISPLAY")] <- "LIN"  # 'LOG'
         description(f)[paste0("flowCore_$P", length(colnames(f)), "Rmax")] <- 262143
