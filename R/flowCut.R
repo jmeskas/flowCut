@@ -201,9 +201,9 @@ flowCut <- function(f, Segment = 500, Channels = NULL, Directory = NULL, FileID 
     
     if (length(all.Time.loc) >= 2) {
         # Multiple time channels
+        Time.loc <- Time.loc[1]  # default to take the first.
         message("This file has ", length(all.Time.loc), " time channels. flowCut has selected to use ", 
             t.name[Time.loc], " - ", t.desc[Time.loc], ".")
-        Time.loc <- Time.loc[1]  # default to take the first.
         nonlap.loc <- all.Time.loc[which(all.Time.loc != Time.loc)]
         parameters(f)$name[nonlap.loc] <- paste0(parameters(f)$name[nonlap.loc], "-Removed")
         colnames(exprs(f))[nonlap.loc] <- paste0(colnames(exprs(f))[nonlap.loc], "-Removed")
