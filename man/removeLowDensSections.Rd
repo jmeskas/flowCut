@@ -46,7 +46,6 @@
 \examples{
 data(flowCutData)
 res_lowDens <- removeLowDensSections(flowCutData[[1]], LowDensityRemoval=0.1, Time.loc=which(parameters(flowCutData[[1]])$name == "Time"))
-library(flowDensity)
 plotDens(flowCutData[[1]], c("Time","FL1-H"))
 points(exprs(flowCutData[[1]])[res_lowDens$rem.ind, c("Time","FL1-H")],
     pch=".", col="grey")

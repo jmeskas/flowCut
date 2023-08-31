@@ -158,7 +158,6 @@ res_flowCut$data
 
 # Alternative plotting option 1
 res_flowCut <- flowCut(flowCutData[[1]])
-library(flowDensity)
 plotDens(flowCutData[[1]], c("Time","FL1-H"))
 points(exprs(flowCutData[[1]])[res_flowCut$ind, c("Time","FL1-H")], pch=".")
 

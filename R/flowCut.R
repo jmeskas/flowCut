@@ -1289,3 +1289,526 @@ TimePrint <- function(startTime) {
     difft <- difftime(Sys.time(), startTime, units = "secs")
     format(.POSIXct(difft, tz = "GMT"), "%H:%M:%S")
 }
+
+
+## Supporting functions from the flowDensity package by Mehrnoush Malek 
+## https://pubmed.ncbi.nlm.nih.gov/25378466/
+## https://github.com/mehrnoushmalek/flowDensity/
+## The functions are re-implemented here, because of a deprecated dependency
+## in flowDensity 
+
+deGate <- function(obj,channel, n.sd = 1.5, use.percentile = FALSE,  percentile =NA,use.upper=FALSE, upper = NA,verbose=TRUE,twin.factor=.98,
+                   bimodal=F,after.peak=NA,alpha = 0.1, sd.threshold = FALSE, all.cuts = FALSE,
+                   tinypeak.removal=1/25,node=NA, adjust.dens = 1,count.lim=20,magnitude=.3,slope.w=4,seq.w=4,spar=.4, ...){
+  
+  ##========================================================================================================================================
+  ## 1D density gating method
+  ## Args:
+  ##   obj: a 'FlowFrame' object, 'CellPopulation' or 'GatingHierarchy'
+  ##   channel: a channel's name or an integer to specify the channel
+  ##   n.sd: an integer that is multiplied to the standard deviation to determine the place of threshold if 'sd.threshold' is 'TRUE'
+  ##   use.percentile: if TRUE, forces to return the 'percentile'th threshold
+  ##   percentile: a value in [0,1] that is used as the percentile. the default is NA. If set to a value(n) and use.percentile=F, it returns the n-th percentile, for 1-peak populations. 
+  ##   use.upper: if TRUE, forces to return the inflection point based on the first (last) peak if upper=F (upper=T)
+  ##   upper: if TRUE, finds the change in the slope at the tail of the density curve, if FALSE, finds it at the head.
+  ##   verbose: When FALSE doesn't print any messages
+  ##   twin.factor: reverse of tinypeak.removal for ignoring twinpeaks
+  ##   bimodal: if TRUE, splits population closer to 50-50 when there are more than 2 peaks
+  ##   after.peak: if TRUE (FALSE) and bimodal=FALSE, it chooses a cuttoff after(before) the maximum peak.
+  ##   alpha: a value in [0,1) specifying the significance of change in the slope which would be detected
+  ##   sd.threshold: if TRUE, it uses 'n.sd' times standard deviation for gating
+  ##   all.cuts: if TRUE, it returns all the cutoff points whose length+1 can roughly estimate the number of cell subsets in that dimension
+  ##   tiny.peak.removal: a values in [0,1] for ignoring tiny peaks in density. Default is 1/25
+  ##   node: A character of the parent name to be excluded from gating hierarchy. Default is NA when x is flowFrame or CellPopulation object. Check getNodesof flowWorkspace
+  ##   adjust.dens: The smoothness of density, it is same as adjust in density(.). The default value is 1 and should not be changed unless necessary
+  ##   count.lim: minimum limit for event count in order to calculate the threshold. Default is 20
+  ##   magnitude: Value between (0,1) for finding changes in the slope that are smaller than max(peak)*magnitude
+  ##   slope.w: Value used for tracking slope. It's a value from 1 to length(density$y), that skip looking at all data points, and instead look at point(i) and point(i+w)
+  ##   seq.w: value used for making the sequence of density points, used in trackSlope
+  ##   spar: value used in smooth.spline function, used in generating the density, default is .4
+  ## Value:
+  ##   cutoffs, i.e. thresholds on the 1D data
+  ## Author:
+  ##   M. Jafar Taghiyar & Mehrnoush Malek
+  ##-----------------------------------------------------------------------------------------------------------------------------------------
+  
+  
+  if (class(obj)=="GatingHierarchy")
+    
+    obj<-gh_pop_get_data(obj,node)
+  if (class(obj)=="CellPopulation")
+    obj<-.getDataNoNA(obj)
+  .densityGating(obj, channel, n.sd = n.sd, use.percentile = use.percentile, percentile = percentile, use.upper=use.upper,upper = upper,verbose=verbose,
+                 twin.factor=twin.factor,bimodal=bimodal,after.peak=after.peak,alpha = alpha, sd.threshold = sd.threshold,all.cuts = all.cuts,
+                 tinypeak.removal=tinypeak.removal, adjust.dens=adjust.dens,count.lim=count.lim,magnitude=magnitude,slope.w=slope.w,
+                 seq.w=seq.w,spar=spar, ...)
+}
+
+.densityGating <- function(obj, channel, n.sd = 1.5, use.percentile = FALSE,  percentile = NA,use.upper=FALSE, upper = NA,verbose=TRUE,twin.factor=.98,
+                           bimodal=F,after.peak=NA,alpha = 0.1, sd.threshold = FALSE, all.cuts = FALSE,
+                           tinypeak.removal=tinypeak.removal, adjust.dens = 1,count.lim=20,magnitude = .3,slope.w=4,seq.w=4, spar=.4,...){
+  
+  ##========================================================================================================================================
+  ## 1D density gating method
+  ## Args:
+  ##   obj: a 'FlowFrame' object, vector or a density object
+  ##   channel: a channel's name or an integer to specify the channel
+  ##   n.sd: an integer that is multiplied to the standard deviation to determine the place of threshold if 'sd.threshold' is 'TRUE'
+  ##   use.percentile: if TRUE, forces to return the 'percentile'th threshold
+  ##   use.upper: if True, forces to return the inflection point based on the first (last) peak if upper=F (upper=T)
+  ##   percentile: a value in [0,1] that is used as the percentile. The default value is 0.95.
+  ##   upper: if 'TRUE', it finds the change in the slope after the peak with index 'peak.ind'
+  ##   verbose: When FALSE doesn't print any messages
+  ##   twin.factor: reverse of tinypeak.removal for ignoring twinpeaks
+  ##   bimodal: if TRUE, splits population closer to 50-50 when there are more than 2 peaks
+  ##   after.peak: if TRUE (FALSE) and bimodal=FALSE, it chooses a cuttoff after(before) the maximum peak.
+  ##   alpha: a value in [0,1) specifying the significance of change in the slope which would be detected
+  ##   sd.threshold: if TRUE, it uses 'n.sd' times standard deviation for gating
+  ##   all.cuts: if TRUE, it returns all the cutoff points whose length+1 can roughly estimate the number of cell subsets in that dimension
+  ##   tinypeak.removal: a values in [0,1] for ignoring tiny peaks in density
+  ##   adjust.dens: The smoothness of density, it is same as adjust in density(.).The default value is 1 and should not be changed unless necessary
+  ##  seq.w: window for generating the sequence of points in density to use in .trackSlope
+  ## spar, is the smoothing factor in spline function, default is .4
+  ## Value:
+  ##   cutoffs, i.e. thresholds on the 1D data
+  ## Authors:
+  ##   M. Jafar Taghiyar & Mehrnoush Malek
+  ##-----------------------------------------------------------------------------------------------------------------------------------------
+  if(class(obj)=="numeric"|class(obj)=="vector"){
+    x<-obj
+    n<- which(!is.na(x))
+    channel <-NA
+    dens <- .densityForPlot(data = x, adjust.dens,spar=spar,...) # OK no other dependencies
+    stdev <- sd(x,na.rm = T)
+  }else if(class(obj)=="density"){
+    warning("Percentiles and SD would be meaningless when dealing with density objects. Make sure to not use them with density objects.")
+    dens <- obj
+    channel <-NA
+    stdev <- sd(dens$y,na.rm = T)
+    x<-obj
+    n<- dens$y
+  }else{
+    x <- exprs(obj)[, channel]
+    n<- which(!is.na(x))
+    dens <- .densityForPlot(data = x, adjust.dens,spar=spar,...) # OK no other dependencies
+    stdev <- sd(x,na.rm = T)
+  }
+  
+  if (length(n)< count.lim)
+  { 
+    if(verbose)
+      cat("Less than", count.lim, "cells, returning -Inf as a threshold.","\n")
+    return(-Inf)
+  }
+  
+  
+  med <- median(dens$x,na.rm = T)
+  if(is.numeric(channel))
+    channel <- colnames(obj)[channel]
+  cutoffs <- c()
+  all.peaks <- .getPeaks(dens, peak.removal=tinypeak.removal) #OK
+  peak.ind <- all.peaks[[2]]
+  peaks <- all.peaks[[1]]
+  len <- length(peaks)
+  if (len==0)
+  {
+    if(verbose)
+      print("Failed to find a peak, check the density.")
+    return(NA)
+  }
+  for(i in 1:(len-1))
+    cutoffs[i] <- .getIntersect(dens, p1 = peaks[i],p2 =  peaks[i+1]) #OK
+  
+  if(use.percentile)
+    return(quantile(x, probs = percentile, na.rm=T))
+  if(use.upper){
+    peak.ind <- ifelse(upper, peak.ind[len], peak.ind[1])
+    track.slope.cutoff <- .trackSlope(dens, peak.ind=peak.ind, upper=upper, alpha=alpha,magnitude = magnitude,w=slope.w,seq.w=seq.w) # OK
+    if(is.infinite(track.slope.cutoff))
+      return(ifelse(upper, max(dens$x), min(dens$x)))
+    else
+      return(track.slope.cutoff)
+  }
+  
+  if(len==1){
+    if(verbose)
+      print("Only one peak is found, set standard deviation, percentile, or upper arguments accordingly")
+    if(!is.na(percentile)){
+      cutoffs <- quantile(x, probs = percentile, na.rm=T)
+    } else if (!is.na(upper))
+    {
+      track.slope.cutoff <- .trackSlope(dens, peak.ind=peak.ind, upper=upper, alpha=alpha, magnitude = magnitude,w=slope.w,seq.w=seq.w) #OK
+      if(is.infinite(track.slope.cutoff))
+        cutoffs <- ifelse(upper, max(dens$x), min(dens$x))
+      else
+        cutoffs <- track.slope.cutoff
+    }else if (sd.threshold)
+    {
+      upper <- as.logical(ifelse(peaks>med, FALSE, TRUE))
+      cutoffs <- ifelse(upper, peaks+n.sd*stdev, peaks-n.sd*stdev)
+    }else{
+      flex.point <- .getFlex(dens, peak.ind=peak.ind,magnitude = magnitude) # OK
+      if(!is.na(flex.point) & !is.null(flex.point))
+      { 
+        if(verbose)
+          print("Cutoff is based on inflection point.")
+        cutoffs <- flex.point
+      }else{
+        if(is.na(upper))
+          upper <- as.logical(ifelse(peaks>med, FALSE, TRUE))
+        track.slope.cutoff <- .trackSlope(dens, peak.ind=peak.ind, upper=upper, alpha=alpha, magnitude = magnitude,w=slope.w,seq.w=seq.w)
+        
+        stdev.cutoff <- ifelse(upper, peaks+n.sd*stdev, peaks-n.sd*stdev)
+        cutoffs <- ifelse(is.infinite(track.slope.cutoff)|sd.threshold, stdev.cutoff, track.slope.cutoff) # use the 's.threshold' if the gate from 'trackSlope()' is too loose
+        if(verbose)
+          print(" cuttoff is based on tracking the slope and cpmparing the position of the peak and mean of the population.")
+      }
+    }
+    
+    return(cutoffs)
+  }else{
+    if(all.cuts)
+      return(cutoffs)
+    
+    cutoffs <- .getScoreIndex(dat=x, peaks = all.peaks,cutoffs = cutoffs,percentile = percentile,adjust.dens = adjust.dens,seq.w=seq.w,w=slope.w,sd.threshold,n.sd=n.sd,
+                              upper=upper,alpha=alpha,twin.factor=twin.factor,bimodal=bimodal,after=after.peak,magnitude=magnitude, ...)
+    
+  }
+  return(cutoffs)
+}
+
+.densityForPlot <- function(data, adjust.dens=1,spar=.4,...){
+  if (length(data)<2)
+  {
+    warning ("Less than 2 cells, returning NA.")
+    return(NA)
+  }
+  dens <- density(data[which(!is.na(data))], adjust=adjust.dens) # from stats
+  dens <- smooth.spline(dens$x, dens$y, spar=spar, ...) # from stats
+  dens$y[which(dens$y<0)] <- 0
+  return(dens)
+}
+
+.getPeaks <- function(d,peak.removal=1/25,twin.factor=1){
+  
+  ##=====================================================================================================================
+  ## Finds the peaks in the given density
+  ## Args:
+  ##   dens: density of the channel whose peaks are going to be found. It is a variable of class 'density'.
+  ##   w: the length of the window where the function searches for the peaks. If all peaks required, use the default w=1.
+  ## Value:
+  ##   peaks in the density of the provided channel
+  ##---------------------------------------------------------------------------------------------------------------------
+  if (all(is.na(d)))
+    return(NA)
+  d.y <- d$y
+  w <- 1
+  peaks <- c()
+  peaks.ind <- c()
+  for(i in 1:(length(d.y)-2*w)){
+    if(d.y[i+w] > d.y[(i+w+1):(i+2*w)] && d.y[i+w] > d.y[i:(i+w-1)] && d.y[i+w] > peak.removal*max(d.y)){ # also removes tiny artificial peaks less than ~%4 of the max peak
+      peaks <- c(peaks, d$x[i+w])
+      peaks.ind <- c(peaks.ind, i+w)
+      
+    }
+  }
+  peaks.height <- d.y[peaks.ind]
+  if (all(is.na(peaks)))
+  {
+    warning("No peaks could be found, returning the maximum value of density.")
+    peaks <-d$x[which.max(d$y)]
+    peaks.height<-d$y[which.max(d$y)]
+    peaks.ind <-which.max(d$y)
+  }
+  max.peak <- which.max(peaks.height)
+  if ( length(peaks)>1 & twin.factor<1)
+  {
+    twins <-which(peaks.height>peaks.height[max.peak]*twin.factor)
+    twins<-  twins[-which(twins==max.peak)]
+    if (length(twins)>0)
+    {
+      if( .getIntersect (d,peaks[tail(twins,1)],peaks[max.peak])>peaks.height[max.peak]*twin.factor*.98)
+      {
+        peaks<-peaks[-twins]
+        peaks.height<-peaks.height[-twins]
+        peaks.ind <- peaks.ind[-twins]
+      }
+    }
+  }
+  return(list(Peaks=peaks, P.ind=peaks.ind,P.h=peaks.height))
+}
+
+.getIntersect <- function(dens, p1, p2){
+  
+  ##=================================================================
+  ## Returns the min intersection between two peaks
+  ## Args:
+  ##   dens: density of the channel whose peaks are going to be found
+  ##   p1: firs peak
+  ##   p2: second peak
+  ## Value:
+  ##   the min intersection between two peaks
+  ##-----------------------------------------------------------------
+  if(missing(p2) | is.na(p2))
+    p2 <- min(dens$x)
+  fun <- splinefun(dens)
+  index <- intersect(which(dens$x < max(c(p1,p2))), which(dens$x > min(c(p1,p2)))) # in this case base intersect, no other one is imported?
+  min.intsct <- dens$x[index][which.min(fun(dens$x[index]))]
+  #if(length(min.intsct==0) | is.infinite(min.intsct))
+  #  min.intsct <- min(dens$x)
+  return(min.intsct)
+}
+
+
+.trackSlope <- function(dens, peak.ind, alpha, upper=T, w,seq.w=4, return.slope=F,start.lo=1,rev=F,magnitude=.3){
+  
+  ##==========================================================================================================================
+  ## Returns the point of the large change in the slope of the density, i.e., 'dens', where the threshold is likely to be there
+  ## Args:
+  ##   dens: density of the channel to investigate
+  ##   peak.ind: index of the peak in the density distribution of the channel
+  ##   alpha: a value in [0,1) specifying the significance of change in the slope which would be detected
+  ##   upper: if 'TRUE', it finds the change in the slope after the peak with index 'peak.ind'
+  ##   w: specifies the length of the window within which the change of slope is investigated
+  ##   return.slope: if 'TRUE' returns all the slope values only
+  ## Value:
+  ##   the point where the slope changes dramatically
+  ## Author:
+  ##   M. Jafar Taghiyar
+  ##---------------------------------------------------------------------------------------------------------------------------
+  d.y <- dens$y
+  d.x <- dens$x
+  slope <- c()
+  heights<- c()
+  start.p <- ifelse(rev,yes = peak.ind-w,no = start.lo+w)
+  end.p <- ifelse(rev,yes = start.lo+w,no = peak.ind-w)
+  
+  lo <- ifelse(upper, yes = peak.ind+w, no = start.p)
+  up <- ifelse(upper, yes = length(d.y)-w, no = end.p)
+  w <-ifelse(rev,yes = -w,no = w) 
+  if(lo>up &w>0)
+  {
+    w<-2
+    lo <- ifelse(upper, yes = peak.ind+w, no = start.p)
+    up <- ifelse(upper, yes = length(d.y)-w, no = end.p)
+  }
+  if (mode(tryCatch(seq(from=lo,to=up,by=w), error = function(x) return("error")))=="character")
+  {
+    warning("not enough point to calculate upper, returning NA.")
+    return(NA)
+  }
+  for(i in seq(from=lo,to=up,by=seq.w)){
+    
+    slope <- c(slope, abs((d.y[i+w]-d.y[i-w])/(d.x[i+w]-d.x[i-w])))
+    heights <-c(heights,d.y[i])
+  }
+  ## try to estimate the optimum alpha using the distribution of slopes
+  #   if(missing(alpha))
+  #     alpha <- ifelse(sd(slope) < max(slope)/10, 0.01, 0.1)
+  if(return.slope)
+    return(slope)
+  small.slopes <- which(slope < (max(slope)*alpha))
+  small.slopes <- small.slopes[which(heights[small.slopes] < magnitude*d.y[peak.ind])]
+  len <- length(small.slopes)
+  if(len==0)
+    return(ifelse(upper, Inf, -Inf))
+  ind <- ifelse(upper, yes=small.slopes[1], no=small.slopes[len]) #if upper, the first large change of slope is given else the last change of slope is returned
+  
+  return(ifelse(upper,yes= d.x[peak.ind+w*(ind)], no=d.x[(lo+(ind-1)*w)]))
+}
+
+.getFlex <- function(dens, peak.ind, w=2,magnitude = magnitude){
+  
+  
+  ##==========================================================================================================================
+  ## Returns the point of inflection or flex
+  ## Args:
+  ##   dens: density of the channel to investigate
+  ##   peak.ind: index of the peak in the density distribution of the channel
+  ##   w: specifies the length of the window within which the change of slope is investigated
+  ## Value:
+  ##   the point of inflection
+  ## Author:
+  ##   M. Jafar Taghiyar
+  ##---------------------------------------------------------------------------------------------------------------------------
+  upper.slope <- .trackSlope(dens=dens, peak.ind=peak.ind, alpha=0.1, upper=T, w=w,seq.w = seq.w, return.slope=T,magnitude = magnitude)
+  lower.slope <- .trackSlope(dens=dens, peak.ind=peak.ind, alpha=0.1, upper=F, w=w,seq.w = seq.w, return.slope=T,magnitude = magnitude)
+  for(i in 2: (length(upper.slope)-1)){
+    if(upper.slope[i]<upper.slope[i+1] & upper.slope[i]<upper.slope[i-1]){
+      upper.ind <- (i-1)*w
+      break
+    }else
+      upper.ind <- Inf
+  }
+  for(i in seq(from=length(lower.slope)-1, to=2, by=-1)){
+    if(lower.slope[i]<lower.slope[i+1] & lower.slope[i]<lower.slope[i-1]){
+      lower.ind <- (i-1)*w
+      break
+    }else
+      lower.ind <- Inf
+  }
+  if(is.infinite(upper.ind)&is.infinite(lower.ind))
+  {    
+    warning("Inflection points cannot be calculated, returning the first peak + sd.")
+    return(dens$x[which.max(dens$y)]+sd(dens$x,na.rm=T))
+  }
+  if(upper.ind<lower.ind)
+    return(dens$x[peak.ind+upper.ind])
+  else
+    return(dens$x[peak.ind-lower.ind])
+}
+
+
+plotDens <- function(obj, channels,node=NA ,col, main, xlab, ylab, xlim,ylim, pch=".", density.overlay=c(FALSE,FALSE),count.lim=20, dens.col=c("grey48","grey48"),cex=1,verbose=TRUE,
+                     dens.type=c("l","l"),transparency=1, adjust.dens=1,show.contour=F, contour.col="darkgrey", ...){
+  
+  ##===================================================
+  ## Plot flowCytometry data with density-based color
+  ##---------------------------------------------------
+  
+  if (class(obj)=="GatingHierarchy")
+  {
+    if(!is.na(node))
+    {
+      flow.frame <-flowWorkspace::gh_pop_get_data(obj,node)
+    }else
+    {
+      warning("For gatingHierarchy objects, node is required, otherwise flowFrame at the root node will be used.")
+      flow.frame <-flowWorkspace::gh_pop_get_data(obj)
+    }
+  }else if(class(obj)=="CellPopulation"){
+    flow.frame<-obj@flow.frame
+    
+  }else{
+    flow.frame<-obj
+  }
+  
+  f.exprs <- exprs(flow.frame)
+  na.ind <-which(is.na(f.exprs[,1]))
+  if(length(na.ind)>0)
+    f.exprs<-f.exprs[-na.ind,]
+  f.data <- pData(parameters(flow.frame))
+  f.col.names <- colnames(flow.frame)
+  if (length(f.exprs[,channels[1]])<count.lim)
+  {
+    col<-1
+    pch<-20
+  }else if(missing(col)){
+    colPalette <- colorRampPalette(c("blue", "turquoise", "green", "yellow", "orange", "red")) #grdevices
+    col <- densCols(f.exprs[,channels], colramp = colPalette) # grdevices
+  }
+  if(is.numeric(channels))
+    channels <- f.col.names[channels]
+  if(missing(xlab))
+    xlab <- paste("<", channels[1], ">:", f.data$desc[which(f.col.names==channels[1])], sep = "")
+  if(missing(ylab))
+    ylab <- paste("<", channels[2], ">:", f.data$desc[which(f.col.names==channels[2])], sep = "")
+  if(missing(main))
+    main <- "All Events"
+  
+  if (nrow(flow.frame)<1)
+  {
+    
+    plot(1, type="n",main = paste0(main,ifelse(verbose,yes=": 0 cells",no="")), axes=F, ylab=ylab, xlab=xlab,...)
+  }else if (nrow(flow.frame)==1)
+  {
+    if (missing(xlim))
+      xlim <- c(f.exprs[,channels[1]]*.6,f.exprs[,channels[1]]*1.5)
+    if (missing(ylim))
+      ylim <- c(f.exprs[,channels[2]]*.6,f.exprs[,channels[2]]*1.5)
+    graphics::plot(x=f.exprs[,channels[1]],y=f.exprs[,channels[2]], col = col, 
+                   pch = 19,  main = main, xlab =xlab,cex=cex,ylab = ylab,xlim=xlim,ylim=ylim, ...)  
+    
+  }else{
+    if (missing(xlim))
+      xlim <- range(f.exprs[,channels[1]],na.rm = T)
+    if (missing(ylim))
+      ylim <- range(f.exprs[,channels[2]],na.rm = T)
+    
+    if (!any(density.overlay) )
+    {
+      
+      graphics::plot(f.exprs[,channels], col = col, pch = pch, main = main, 
+                     xlab =xlab,cex=cex,ylab = ylab,xlim=xlim,ylim=ylim, ...)
+      if (show.contour)
+      {
+        flowViz::contour(x=flow.frame,y = channels, add=TRUE,col=contour.col,lty=1,lwd=1.5) # no offending imports
+      }
+      
+    }else if (density.overlay[1] & density.overlay[2])
+    {
+      x.dens <- density(f.exprs[,channels[1]],adjust=adjust.dens)
+      graphics::plot(x.dens$x, x.dens$y,main =main,cex=2.2,col=dens.col[1], type= dens.type[1],pch=".",yaxt="n",xlim=xlim,
+                     xlab=xlab,ylab=ylab,...)
+      par(new=T)
+      
+      y.dens <- density(f.exprs[,channels[2]],adjust=adjust.dens)
+      graphics::plot(y.dens$y,y.dens$x,main ="",cex=2.2,col=dens.col[2],type= dens.type[2], pch=".",
+                     ylab="",xlab="",xaxt="n", ylim=ylim,...)
+      par(new=T)
+      col<-adjustcolor(col,alpha.f = transparency)
+      graphics::plot(f.exprs[,channels], col = col, pch = pch,axes=F,xlab="",ylab="",main = "",cex=cex,ylim=ylim,xlim=xlim)
+      
+    }else if (density.overlay[1] & !density.overlay[2])
+    {
+      x.dens <- density(f.exprs[,channels[1]],adjust=adjust.dens)
+      graphics::plot(x.dens$x, x.dens$y,main =main,cex=2.2,col=dens.col[1], type= dens.type[1],pch=".",yaxt="n",xlim=xlim,
+                     xlab=xlab,ylab=ylab)
+      par(new=T)
+      
+      graphics::plot(1,main ="",cex=1,col="white",type= dens.type[2], pch=".",
+                     ylab="",xlab="",xaxt="n", ylim=ylim)
+      par(new=T)
+      col<-adjustcolor(col,alpha.f = transparency)
+      graphics::plot(f.exprs[,channels], col = col, pch = pch,axes=F,xlab="",ylab="",main = "",cex=cex,ylim=ylim,xlim=xlim)
+      
+    }else{
+      graphics::plot(1,main ="",col="white", type= dens.type[1],pch=".",yaxt="n",xlim=xlim,
+                     xlab=xlab,ylab=ylab,...)
+      par(new=T)
+      y.dens <- density(f.exprs[,channels[2]],adjust=adjust.dens)
+      graphics::plot(y.dens$y,y.dens$x,main ="",cex=2.2,col=dens.col[2],type= dens.type[2], pch=".",
+                     ylab="",xlab="",xaxt="n", ylim=ylim,...)
+      par(new=T)
+      col<-adjustcolor(col,alpha.f = transparency)
+      graphics::plot(f.exprs[,channels], col = col, pch = pch,axes=F,xlab="",ylab="",main = "",cex=cex,ylim=ylim,xlim=xlim)
+    }
+    
+  }
+}
+
+getPeaks <-  function(obj, channel,tinypeak.removal=1/25, adjust.dens=1,node=NA,verbose=F,twin.factor=1,spar=.4,...){
+  ##===================================================
+  #Finding peaks for flowFrame objects or numeric vectors
+  ##==================================================
+  if(class(obj)=="numeric"|class(obj)=="vector"){
+    x<-obj
+    channel <-NA
+  }else  if (class(obj)=="GatingHierarchy")
+  {
+    obj<-gh_pop_get_data(obj,node)
+    x <- exprs(obj)[, channel]
+  }else if (class(obj)=="CellPopulation")
+  { 
+    obj<-.getDataNoNA(obj)
+    x <- exprs(obj)[, channel]
+  }else if (class(obj)=="flowFrame"){
+    x <- exprs(obj)[, channel]
+  }
+  if ( class(obj)=="density")
+  { 
+    dens <- obj 
+  }else{
+    n<- which(!is.na(x))
+    if (length(n)< 3)
+    {
+      if(verbose)
+        cat("Less than 3 cells, returning NA as a Peak.","\n")
+      return(list(Peaks=NA, P.ind=0,P.h=0))
+    }
+    dens <- .densityForPlot(data = x, adjust.dens=adjust.dens,spar=spar,...)
+  }
+  
+  all.peaks <- .getPeaks(dens, peak.removal=tinypeak.removal,twin.factor=twin.factor)
+  return(all.peaks)
+}
